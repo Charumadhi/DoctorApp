@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # doctor_app
 
 A new Flutter project.
@@ -14,3 +15,6 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# DoctorApp
+>>>>>>> 90bb1f471b70bc72e11af073a47dde3d12f96ab3
