@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:your_app_name/attack_form.dart';
 
 void main() {
   runApp(const RabitrackRiverApp());
@@ -80,6 +81,9 @@ class LoginPage extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     // Add login functionality here
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AttackFormPage()),
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
