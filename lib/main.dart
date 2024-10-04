@@ -148,12 +148,12 @@ class LoginPage extends StatelessWidget {
               // Existing Image and Text
               Column(
                 children: [
-                  Image.network(
-                    'https://img.freepik.com/free-vector/veterinary-with-dog_1196-293.jpg?t=st=1727916940~exp=1727920540~hmac=a6e9d714781022620342ad3b63f0d32fa1e4495d53db3afe744981fdc43f158f&w=740',
-                    width: 200,
+                  Image.asset(
+                    'assets/doodle.png', // Replace with your logo path
+                    width: 120,
                     height: 120,
                   ),
-                  const SizedBox(height: 10),
+
                   const Text(
                     'Pawsitive Care, Every Time.',
                     style: TextStyle(
