@@ -71,8 +71,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                 ),
                 controller: TextEditingController(
                   text: _selectedDate != null
-                      ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-                      : '',
+                      ? DateFormat('yyyy-MM-dd').format(_selectedDate!): '',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -163,7 +162,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   },
                   child: Text('Next'),
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.red, // Set the button color to red
+                      backgroundColor: Colors.red, // Set the button color to red
                     padding: const EdgeInsets.symmetric(
                         horizontal: 50, vertical: 15),
                     textStyle: TextStyle(fontSize: 16),
