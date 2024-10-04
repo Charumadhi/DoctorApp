@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:doctor_app/attack_form.dart';
+import 'package:doctor_app/statistics.dart'; // Import your StatisticsPage
+import 'package:doctor_app/home.dart'; // Import your HomePage
+import 'package:doctor_app/profile_page.dart'; // Import your ProfilePage
 
 void main() {
   runApp(const RabitrackRiverApp());
@@ -14,6 +16,13 @@ class RabitrackRiverApp extends StatelessWidget {
       title: 'Rabitrack River',
       theme: ThemeData.light(),
       home: const LoginPage(),
+      initialRoute: '/', // Set the initial route
+      routes: {
+        '/LoginPage':(context) => LoginPage(),
+        '/statistics': (context) => StatisticsPage(), // Define the route for StatisticsPage
+        '/home': (context) => HomePage(), // Define the route for HomePage
+        '/profile': (context) => ProfilePage(), // Define the route for ProfilePage
+      },
     );
   }
 }
@@ -24,38 +33,63 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Dark background color
+      backgroundColor: Colors.white, // Light background color
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
-              const SizedBox(height: 140), // Optional space at the top
+              // Top Image
+              Image.asset(
+                'assets/rabitrack.jpeg', // Replace with your logo path
+                width: 180,
+                height: 220,
+              ),
 
-              // Title
-              const Text(
-                'Rabitrack River',
-                style: TextStyle(
-                  fontSize: 32,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+              // Space between image and text
+              Container(
+                padding: const EdgeInsets.all(10), // Padding around the text
+                color: Colors.transparent, // Background color
+                child: const Text(
+                  'RABITRACK RIVER', // Replace with your desired text
+                  style: TextStyle(
+                    fontFamily: 'Averia Gruesa Libre', // Ensure the font is added to pubspec.yaml
+                    fontSize: 22,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w800,
+                    height: 22 / 38, // Line height based on font size
+                    color: Color(0xFF056839), // Text color
+                  ),
+                  textAlign: TextAlign.left, // Text alignment
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 30), // Optional space at the bottom
 
-              // Username Field
+              // Greeting Text
+              const Text(
+                'Hello Doctor👨‍⚕️🩺',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Doctor ID Field
               TextField(
                 decoration: InputDecoration(
-                  labelText: 'Username',
-                  labelStyle: const TextStyle(color: Colors.white),
+                  labelText: 'Doctor ID',
+                  labelStyle: const TextStyle(color: Colors.black),
                   filled: true,
-                  fillColor: Colors.grey[800],
+                  fillColor: Colors.grey[300],
+                  prefixIcon: const Icon(Icons.medical_services, color: Colors.black), // Icon for Doctor ID
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.black),
               ),
               const SizedBox(height: 20),
 
@@ -63,29 +97,30 @@ class LoginPage extends StatelessWidget {
               TextField(
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  labelStyle: const TextStyle(color: Colors.white),
+                  labelStyle: const TextStyle(color: Colors.black),
                   filled: true,
-                  fillColor: Colors.grey[800],
+                  fillColor: Colors.grey[300],
+                  prefixIcon: const Icon(Icons.lock, color: Colors.black), // Icon for Password
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.black),
                 obscureText: true, // Hide password input
               ),
               const SizedBox(height: 30),
 
-              // Login Button
+              // Let's Analyze Button
               SizedBox(
                 width: 200, // Reduce button width
                 child: ElevatedButton(
                   onPressed: () {
-                    // Add login functionality here
+                    // Navigate to HomePage when button is pressed
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AttackFormPage(),
-                        ),
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HomePage(),
+                      ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -93,39 +128,24 @@ class LoginPage extends StatelessWidget {
                     minimumSize: const Size(150, 60), // Fixed width
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 15, // Set your desired font size here
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.pets), // Paw symbol
+                      SizedBox(width: 10), // Space between icon and text
+                      Text(
+                        "Let's Analyze",
+                        style: TextStyle(
+                          fontSize: 15, // Set your desired font size here
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
               const SizedBox(height: 30),
 
-              // Register Button
-              SizedBox(
-                width: 200, // Reduce button width
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Add register functionality here
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    minimumSize: const Size(150, 60),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text(
-                    'Register',
-                    style: TextStyle(
-                      fontSize: 15, // Set your desired font size here
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 110), // Adjust this as needed
-
-              // Image and Text
+              // Existing Image and Text
               Column(
                 children: [
                   Image.network(
@@ -135,10 +155,10 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'Positive Care, Every Time.',
+                    'Pawsitive Care, Every Time.',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white,
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
