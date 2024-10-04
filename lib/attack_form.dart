@@ -339,7 +339,9 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       // Process the data
-                      print('Form submitted!');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Form submitted')),
+                      );
                     }
                   },
                   child: const Text('Submit'),
