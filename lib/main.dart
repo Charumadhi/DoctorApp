@@ -161,7 +161,7 @@ class LoginPage extends StatelessWidget {
                   ),
 
                   const Text(
-                    'Positive Care, Every Time!',
+                    'Pawsitive Care, Every Time!',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.black,
