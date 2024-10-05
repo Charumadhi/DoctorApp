@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home.dart';
 
 class AttackerDetailsPage extends StatefulWidget {
   @override
@@ -8,10 +9,34 @@ class AttackerDetailsPage extends StatefulWidget {
 class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
   String? _animalOwnership;
   String? _animalType;
-  String? _animalAge;
+  int? _age;
+  String _ageUnit = 'Years'; // Default unit is 'Years
   String? _vaccinationStatus;
   String? _vaccinationState;
   String? _animalCondition;
+
+  void _submitForm() {
+    // After form submission, navigate to the success page with animation
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => SuccessPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.ease;
+
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,12 +45,11 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
         title: Text('New Attack'),
         backgroundColor: Colors.purple,
       ),
-      body: SingleChildScrollView( // Wrap the body in SingleChildScrollView
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Title for Attacker's Details
             Text(
               'Attacker\'s Details',
               style: TextStyle(
@@ -36,7 +60,6 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
             ),
             const SizedBox(height: 20),
 
-            // Animal Ownership Dropdown
             DropdownButtonFormField<String>(
               value: _animalOwnership,
               decoration: InputDecoration(
@@ -45,12 +68,10 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                 hintText: 'Select Category',
                 hintStyle: TextStyle(color: Colors.purple),
               ),
-              items: ['Owned', 'Stray']
-                  .map((ownership) => DropdownMenuItem<String>(
+              items: ['Owned', 'Stray'].map((ownership) => DropdownMenuItem<String>(
                 value: ownership,
                 child: Text(ownership),
-              ))
-                  .toList(),
+              )).toList(),
               onChanged: (value) {
                 setState(() {
                   _animalOwnership = value;
@@ -59,7 +80,6 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
             ),
             const SizedBox(height: 20),
 
-            // Animal Type Dropdown
             DropdownButtonFormField<String>(
               value: _animalType,
               decoration: InputDecoration(
@@ -68,12 +88,10 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                 hintText: 'Select Species',
                 hintStyle: TextStyle(color: Colors.purple),
               ),
-              items: ['Dog', 'Cattle', 'Cat']
-                  .map((type) => DropdownMenuItem<String>(
+              items: ['Dog', 'Cattle', 'Cat'].map((type) => DropdownMenuItem<String>(
                 value: type,
                 child: Text(type),
-              ))
-                  .toList(),
+              )).toList(),
               onChanged: (value) {
                 setState(() {
                   _animalType = value;
@@ -82,21 +100,58 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
             ),
             const SizedBox(height: 20),
 
-            // Animal Age Input
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'How old is that Species?',
-                border: OutlineInputBorder(),
-                hintText: 'Enter value',
-              ),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                _animalAge = value;
-              },
+            Column(
+              children: [
+                // Dropdown to select 'Months' or 'Years'
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: DropdownButtonFormField<String>(
+                    value: _ageUnit, // Default value is 'Years'
+                    decoration: InputDecoration(
+                      labelText: 'Unit (Months/Years)',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _ageUnit = newValue!; // Update the unit
+                      });
+                    },
+                    items: <String>['Months', 'Years']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                // Age input field
+                TextFormField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'How old is that species?',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter age';
+                    }
+                    int? age = int.tryParse(value);
+                    if (age == null || age <= 0) {
+                      return 'Please enter a valid number above 0';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      _age = int.tryParse(value); // Update _age with the user input
+                    });
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 20),
 
-            // Vaccination Status Dropdown
             DropdownButtonFormField<String>(
               value: _vaccinationStatus,
               decoration: InputDecoration(
@@ -105,12 +160,10 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                 hintText: 'Select Vaccination Status',
                 hintStyle: TextStyle(color: Colors.purple),
               ),
-              items: ['Known', 'Unknown']
-                  .map((status) => DropdownMenuItem<String>(
+              items: ['Known', 'Unknown'].map((status) => DropdownMenuItem<String>(
                 value: status,
                 child: Text(status),
-              ))
-                  .toList(),
+              )).toList(),
               onChanged: (value) {
                 setState(() {
                   _vaccinationStatus = value;
@@ -119,7 +172,6 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
             ),
             const SizedBox(height: 20),
 
-            // Conditional Vaccination State Dropdown
             if (_vaccinationStatus == 'Known')
               DropdownButtonFormField<String>(
                 value: _vaccinationState,
@@ -129,21 +181,18 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                   hintText: 'Select Status',
                   hintStyle: TextStyle(color: Colors.purple),
                 ),
-                items: ['Vaccinated', 'Not Vaccinated']
-                    .map((state) => DropdownMenuItem<String>(
+                items: ['Vaccinated', 'Not Vaccinated'].map((state) => DropdownMenuItem<String>(
                   value: state,
                   child: Text(state),
-                ))
-                    .toList(),
+                )).toList(),
                 onChanged: (value) {
                   setState(() {
                     _vaccinationState = value;
                   });
                 },
               ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
-            // Animal Condition Dropdown
             DropdownButtonFormField<String>(
               value: _animalCondition,
               decoration: InputDecoration(
@@ -152,12 +201,10 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                 hintText: 'Condition of the Animal',
                 hintStyle: TextStyle(color: Colors.purple),
               ),
-              items: ['Natural Death', 'Dead with Rabies Symptoms', 'Alive with No Symptoms']
-                  .map((condition) => DropdownMenuItem<String>(
+              items: ['Natural Death', 'Dead with Rabies Symptoms', 'Alive with No Symptoms'].map((condition) => DropdownMenuItem<String>(
                 value: condition,
                 child: Text(condition),
-              ))
-                  .toList(),
+              )).toList(),
               onChanged: (value) {
                 setState(() {
                   _animalCondition = value;
@@ -166,18 +213,93 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
             ),
             const SizedBox(height: 20),
 
-            // Submit Button
             ElevatedButton(
-              onPressed: () {
-                // Handle the submission logic here
-                // You can also display a success message or navigate to another page
-              },
-              child: const Text('Submit'),
+              onPressed: _submitForm,
+              child: const Text(
+                'Submit',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.purple,
+                foregroundColor: Colors.white,
+                shadowColor: Colors.black,
+                elevation: 5,
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                //side: BorderSide(color: Colors.tealAccent, width: 2),
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
 
+class SuccessPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Report Submitted'),
+        backgroundColor: Colors.teal,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              color: Colors.green,
+              size: 100,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Report submitted successfully!',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage()),
+                  );
+                },
+                child: const Text(
+                  'Done',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white, // Button text color
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal, // Background color
+                  foregroundColor: Colors.white, // Text and icon color when pressed
+                  shadowColor: Colors.black, // Shadow color
+                  elevation: 5, // Elevation for shadow effect
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15), // Padding around the text
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30), // Rounded corners
+                  ),
+                  //side: BorderSide(color: Colors.tealAccent, width: 2), // Border around the button
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 }

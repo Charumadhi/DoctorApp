@@ -29,16 +29,17 @@ class AttackFormPage extends StatefulWidget {
 class _AttackFormPageState extends State<AttackFormPage> {
   final _formKey = GlobalKey<FormState>();
   DateTime? _selectedDate;
-  String? _area = 'Puducherry';
-  String? _species = 'Dog';
-  String? _breed = 'Pure Breed';
+  String? _area; // Remove default value
+  String? _species; // Remove default value
+  String? _breed; // Remove default value
   int? _age;
-  String? _gender = 'Male';
-  String? _attackSite = 'Extremities of Body';
-  String? _woundCategory = '1';
-  String? _vaccinationStatus = 'Known';
-  String? _vaccinationDetail = 'Vaccinated';
-  String? _numberOfDoses = '1';
+  String _ageUnit = 'Years'; // Default unit is 'Years
+  String? _gender; // Remove default value
+  String? _attackSite; // Remove default value
+  String? _woundCategory; // Remove default value
+  String? _vaccinationStatus; // Remove default value
+  String? _vaccinationDetail;
+  String? _numberOfDoses;
 
   int _selectedIndex = 0; // Keeps track of the current tab index
 
@@ -124,6 +125,12 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please select a date';
+                    }else {
+                      // Parses selected date for validation
+                      DateTime selectedDate = DateFormat('yyyy-MM-dd').parse(value);
+                      if (selectedDate.isAfter(DateTime.now())) {
+                        return 'Please enter a valid date. Future dates are not allowed.';
+                      }
                     }
                     return null;
                   },
@@ -136,6 +143,8 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   decoration: InputDecoration(
                     labelText: 'Area',
                     border: OutlineInputBorder(),
+                    hintText: 'Select Area',
+                    hintStyle: TextStyle(color: Colors.purple),
                   ),
                   items: ['Puducherry', 'Karaikal', 'Mahe', 'Yanam']
                       .map((area) => DropdownMenuItem<String>(
@@ -191,30 +200,58 @@ class _AttackFormPageState extends State<AttackFormPage> {
                     });
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // Age of Species
-                TextFormField(
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'How old is that species? (Months/Years)',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter age';
-                    }
-                    int? age = int.tryParse(value);
-                    if (age == null || age <= 0) {
-                      return 'Please enter a valid number above 0';
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    setState(() {
-                      _age = int.tryParse(value);
-                    });
-                  },
+                Column(
+                  children: [
+                    // Dropdown to select 'Months' or 'Years'
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: DropdownButtonFormField<String>(
+                        value: _ageUnit, // Default value is 'Years'
+                        decoration: InputDecoration(
+                          labelText: 'Unit (Months/Years)',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _ageUnit = newValue!; // Update the unit
+                          });
+                        },
+                        items: <String>['Months', 'Years']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    // Age input field
+                    TextFormField(
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'How old is that species?',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter age';
+                        }
+                        int? age = int.tryParse(value);
+                        if (age == null || age <= 0) {
+                          return 'Please enter a valid number above 0';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          _age = int.tryParse(value); // Update _age with the user input
+                        });
+                      },
+                    ),
+                ],
                 ),
                 const SizedBox(height: 20),
 
@@ -308,54 +345,75 @@ class _AttackFormPageState extends State<AttackFormPage> {
                 const SizedBox(height: 20),
 
                 // Vaccination Detail dropdown
-                DropdownButtonFormField<String>(
-                  value: _vaccinationDetail,
-                  decoration: InputDecoration(
-                    labelText: 'Vaccination Detail',
-                    border: OutlineInputBorder(),
+                // Conditional Vaccination State Dropdown
+                if (_vaccinationStatus == 'Known')
+                  DropdownButtonFormField<String>(
+                    value: _vaccinationDetail,
+                    decoration: InputDecoration(
+                      labelText: 'Vaccination Details',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ['Vaccinated', 'Not Vaccinated']
+                        .map((detail) => DropdownMenuItem<String>(
+                      value: detail,
+                      child: Text(detail),
+                    ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _vaccinationDetail = value;
+                      });
+                    },
                   ),
-                  items: ['Vaccinated', 'Not Vaccinated']
-                      .map((detail) => DropdownMenuItem<String>(
-                    value: detail,
-                    child: Text(detail),
-                  ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _vaccinationDetail = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // No. of Vaccination Doses dropdown
-                DropdownButtonFormField<String>(
-                  value: _numberOfDoses,
-                  decoration: InputDecoration(
-                    labelText: 'How many doses it had?',
-                    border: OutlineInputBorder(),
+                  // No. of Vaccination Doses dropdown
+                if (_vaccinationStatus == 'Known')
+                  DropdownButtonFormField<String>(
+                    value: _numberOfDoses,
+                    decoration: InputDecoration(
+                      labelText: 'How many doses it had?',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ['1', '2', '3', 'More than 3']
+                        .map((doses) => DropdownMenuItem<String>(
+                      value: doses,
+                      child: Text(doses),
+                    ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _numberOfDoses = value;
+                      });
+                    },
                   ),
-                  items: ['1', '2', '3', 'More than 3']
-                      .map((doses) => DropdownMenuItem<String>(
-                    value: doses,
-                    child: Text(doses),
-                  ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _numberOfDoses = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                 // Submit button
                 Center(
                   child: ElevatedButton(
                     onPressed: _submitForm,
-                    child: const Text('Submit'),
+                    child: const Text(
+                      'Submit',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // Button text color
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue, // Background color
+                      foregroundColor: Colors.white, // Text and icon color when pressed
+                      shadowColor: Colors.black, // Shadow color
+                      elevation: 5, // Elevation for shadow effect
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15), // Padding around the text
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20), // Rounded corners
+                      ),
+                      //side: BorderSide(color: Colors.tealAccent, width: 2), // Border around the button
+                    ),
                   ),
-                ),
+                )
               ],
             ),
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'attack_form.dart'; // Import the AttackForm screen
  // Import your StatisticsPage if not already done
 import 'package:doctor_app/statistics.dart';
+import 'attacker_details.dart';
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

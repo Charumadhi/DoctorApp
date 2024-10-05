@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:doctor_app/statistics.dart'; // Import your StatisticsPage
 import 'package:doctor_app/home.dart'; // Import your HomePage
 import 'package:doctor_app/profile_page.dart'; // Import your ProfilePage
+import 'theme_provider.dart'; // Import your theme provider
 
 void main() {
   runApp(const RabitrackRiverApp());
@@ -14,14 +15,19 @@ class RabitrackRiverApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Rabitrack River',
-      theme: ThemeData.light(),
-      home: const LoginPage(),
-      initialRoute: '/', // Set the initial route
+      theme: ThemeData(
+        primaryColor: Colors.blue,
+        colorScheme: ColorScheme.light(primary: Colors.blue), // Set the primary color
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.black), // Default text color
+        ),
+      ),
+      initialRoute: '/login', // Set the initial route
       routes: {
-        '/LoginPage':(context) => LoginPage(),
-        '/statistics': (context) => StatisticsPage(), // Define the route for StatisticsPage
-        '/home': (context) => HomePage(), // Define the route for HomePage
-        '/profile': (context) => ProfilePage(), // Define the route for ProfilePage
+        '/login': (context) => const LoginPage(), // Define the route for LoginPage
+        '/statistics': (context) =>  StatisticsPage(), // Define the route for StatisticsPage
+        '/home': (context) =>  HomePage(), // Define the route for HomePage
+        '/profile': (context) =>  ProfilePage(), // Define the route for ProfilePage
       },
     );
   }
@@ -43,8 +49,8 @@ class LoginPage extends StatelessWidget {
               // Top Image
               Image.asset(
                 'assets/rabitrack.jpeg', // Replace with your logo path
-                width: 180,
-                height: 220,
+                width: 120,
+                height: 290,
               ),
 
               // Space between image and text
@@ -155,7 +161,7 @@ class LoginPage extends StatelessWidget {
                   ),
 
                   const Text(
-                    'Pawsitive Care, Every Time.',
+                    'Positive Care, Every Time!',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.black,

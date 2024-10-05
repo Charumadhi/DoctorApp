@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:doctor_app/credits.dart'; // Replace with correct path if needed
 import 'package:doctor_app/statistics.dart'; // Update with the correct path if necessary
+import 'main.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -88,7 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
 
                 // Navigate back to the login page
-                Navigator.pushReplacementNamed(context, '/LoginPage'); // Ensure '/login' route is defined in your app
+                Navigator.pushReplacementNamed(context, '/login'); // Ensure '/login' route is defined in your app
               },
             ),
           ],
