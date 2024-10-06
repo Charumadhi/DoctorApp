@@ -50,7 +50,7 @@ class LoginPage extends StatelessWidget {
               Image.asset(
                 'assets/rabitrack.jpeg', // Replace with your logo path
                 width: 150,
-                height: 200,
+                height: 300,
               ),
 
               // Space between image and text

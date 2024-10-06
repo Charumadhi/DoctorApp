@@ -53,17 +53,17 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(height: 50), // Spacing from top
 
             // Theme Option
-            ListTile(
-              leading: Icon(Icons.brightness_6, size: 30),
-              title: Text('Theme', style: TextStyle(fontSize: 20)),
-              trailing: Switch(
-                value: _isDarkTheme,
-                onChanged: _toggleTheme,
-                activeColor: Colors.blue,
-                inactiveThumbColor: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 20), // Spacing between items
+            // ListTile(
+            //   leading: Icon(Icons.brightness_6, size: 30),
+            //   title: Text('Theme', style: TextStyle(fontSize: 20)),
+            //   trailing: Switch(
+            //     value: _isDarkTheme,
+            //     onChanged: _toggleTheme,
+            //     activeColor: Colors.blue,
+            //     inactiveThumbColor: Colors.grey,
+            //   ),
+            // ),
+            // SizedBox(height: 20), // Spacing between items
 
             // Credits Option
             ListTile(

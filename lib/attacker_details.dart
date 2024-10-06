@@ -16,25 +16,9 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
   String? _animalCondition;
 
   void _submitForm() {
-    // After form submission, navigate to the success page with animation
     Navigator.push(
       context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => SuccessPage(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.ease;
-
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          var offsetAnimation = animation.drive(tween);
-
-          return SlideTransition(
-            position: offsetAnimation,
-            child: child,
-          );
-        },
-      ),
+      MaterialPageRoute(builder: (context) => FirstQuestionPage()),
     );
   }
 
@@ -242,7 +226,229 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
   }
 }
 
-class SuccessPage extends StatelessWidget {
+class FirstQuestionPage extends StatelessWidget {
+  void _nextQuestion(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SecondQuestionPage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // Full-screen background image
+          Image.network(
+            'https://img.freepik.com/free-photo/vertical-shot-grey-cat-with-blue-eyes-dark_181624-34787.jpg?size=626&ext=jpg&ga=GA1.1.1819120589.1728086400&semt=ais_hybrid',
+            height: double.infinity,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          // Centered content on top of the background image
+          Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20), // Adjust the horizontal padding as needed
+              child: Container(
+              padding: EdgeInsets.all(40),
+              decoration: BoxDecoration(
+                color: Colors.grey[300]?.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Was the first aid given?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _nextQuestion(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black12,
+                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text(
+                            'Yes',
+                            style: TextStyle(
+                               fontSize: 16,
+                               fontWeight: FontWeight.bold,
+                               color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => _nextQuestion(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black12,
+                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text(
+                          'No',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SecondQuestionPage extends StatelessWidget {
+  void _finish(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SuccessPage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // Full-screen background image
+          Image.network(
+            'https://img.freepik.com/free-photo/vertical-shot-grey-cat-with-blue-eyes-dark_181624-34787.jpg?size=626&ext=jpg&ga=GA1.1.1819120589.1728086400&semt=ais_hybrid',
+            height: double.infinity,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          // Centered content on top of the background image
+          Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20), // Adjust the horizontal padding as needed
+              child: Container(
+                padding: EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300]?.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Was the bite washed for 15 mins in tap water?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () => _finish(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black12,
+                            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text(
+                            'Yes',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => _finish(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black12,
+                            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text(
+                            'No',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SuccessPage extends StatefulWidget {
+  @override
+  _SuccessPageState createState() => _SuccessPageState();
+}
+
+class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStateMixin {
+  double _opacity = 0.0;
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    // Start the fade-in animation
+    Future.delayed(Duration(milliseconds: 300), () {
+      setState(() {
+        _opacity = 1.0;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -254,49 +460,60 @@ class SuccessPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.check_circle_outline,
-              color: Colors.green,
-              size: 100,
+            AnimatedOpacity(
+              opacity: _opacity,
+              duration: Duration(seconds: 1),
+              child: Icon(Icons.check_circle_outline, color: Colors.green, size: 100),
             ),
             const SizedBox(height: 20),
-            Text(
-              'Report submitted successfully!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+            AnimatedOpacity(
+              opacity: _opacity,
+              duration: Duration(seconds: 5),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Center(
+                  child: Text(
+                    'Thanks doctor :) Your report has been '
+                        'recorded and your response has been '
+                        'saved successfully!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            Center(
+            ScaleTransition(
+              scale: Tween<double>(begin: 1.0, end: 1.2).animate(
+                CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+              ),
               child: ElevatedButton(
                 onPressed: () {
+                  //_controller.forward().then((_) => _controller.reverse());
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
+                    MaterialPageRoute(
+                      builder: (context) => HomePage(),
+                    ),
                   );
                 },
                 child: const Text(
                   'Done',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, // Button text color
-                  ),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal, // Background color
-                  foregroundColor: Colors.white, // Text and icon color when pressed
-                  shadowColor: Colors.black, // Shadow color
-                  elevation: 5, // Elevation for shadow effect
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15), // Padding around the text
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30), // Rounded corners
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  //side: BorderSide(color: Colors.tealAccent, width: 2), // Border around the button
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
