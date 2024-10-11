@@ -24,7 +24,8 @@ class StatisticsPage extends StatelessWidget {
 
             // Logo
             Image.asset(
-              'assets/google_map.png', // Replace with your logo path
+              'assets/google_map.png',
+              width:400,// Replace with your logo path
               height: 200, // Adjust the size of the logo
               fit: BoxFit.cover, // Cover the space while maintaining aspect ratio
             ),

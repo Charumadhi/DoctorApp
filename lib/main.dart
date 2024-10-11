@@ -25,9 +25,9 @@ class RabitrackRiverApp extends StatelessWidget {
       initialRoute: '/login', // Set the initial route
       routes: {
         '/login': (context) => const LoginPage(), // Define the route for LoginPage
-        '/statistics': (context) =>  StatisticsPage(), // Define the route for StatisticsPage
-        '/home': (context) =>  HomePage(), // Define the route for HomePage
-        '/profile': (context) =>  ProfilePage(), // Define the route for ProfilePage
+        '/statistics': (context) => StatisticsPage(), // Define the route for StatisticsPage
+        '/home': (context) => HomePage(), // Define the route for HomePage
+        '/profile': (context) => ProfilePage(), // Define the route for ProfilePage
       },
     );
   }
@@ -39,141 +39,167 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Light background color
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              // Top Image
-              Image.asset(
-                'assets/rabitrack.jpeg', // Replace with your logo path
-                width: 150,
-                height: 300,
+      body: Stack(
+        children: <Widget>[
+          // Background Image
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/doctorbg.png'), // Replace with your background image path
+                fit: BoxFit.cover,
               ),
+            ),
+          ),
+          // Transparent Layer over the background for better text visibility
+          Container(
+            color: Colors.black.withOpacity(0.5),
+          ),
+          // Scrollable content
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const SizedBox(height: 60), // Add some space from the top
 
-              // Space between image and text
-              Container(
-                padding: const EdgeInsets.all(10), // Padding around the text
-                color: Colors.transparent, // Background color
-                child: const Text(
-                  'RABITRACK RIVER', // Replace with your desired text
-                  style: TextStyle(
-                    fontFamily: 'Averia Gruesa Libre', // Ensure the font is added to pubspec.yaml
-                    fontSize: 22,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w800,
-                    height: 22 / 38, // Line height based on font size
-                    color: Color(0xFF056839), // Text color
+                  // Logo Image
+                  Center(
+                    child: Image.asset(
+                      'assets/Rabitrackrivertr.png', // Replace with your logo image path
+                      width: 150,
+                      height: 150,
+                    ),
                   ),
-                  textAlign: TextAlign.left, // Text alignment
-                ),
-              ),
-              const SizedBox(height: 30), // Optional space at the bottom
 
-              // Greeting Text
-              const Text(
-                'Hello Doctor👨‍⚕️🩺',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 20),
+                  const SizedBox(height: 30), // Space between logo and text
 
-              // Doctor ID Field
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Doctor ID',
-                  labelStyle: const TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: Colors.grey[300],
-                  prefixIcon: const Icon(Icons.medical_services, color: Colors.black), // Icon for Doctor ID
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                style: const TextStyle(color: Colors.black),
-              ),
-              const SizedBox(height: 20),
-
-              // Password Field
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  labelStyle: const TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: Colors.grey[300],
-                  prefixIcon: const Icon(Icons.lock, color: Colors.black), // Icon for Password
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                style: const TextStyle(color: Colors.black),
-                obscureText: true, // Hide password input
-              ),
-              const SizedBox(height: 30),
-
-              // Let's Analyze Button
-              SizedBox(
-                width: 200, // Reduce button width
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Navigate to HomePage when button is pressed
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => HomePage(),
+                  // Welcome Text
+                  const Center(
+                    child: Text(
+                      'Welcome, Doctor!',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10.0,
+                            color: Colors.black45,
+                            offset: Offset(2.0, 2.0),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    minimumSize: const Size(150, 60), // Fixed width
-                    foregroundColor: Colors.white,
+                    ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.pets), // Paw symbol
-                      SizedBox(width: 10), // Space between icon and text
-                      Text(
-                        "Let's Analyze",
-                        style: TextStyle(
-                          fontSize: 15, // Set your desired font size here
+                  const SizedBox(height: 20),
+
+                  // Doctor ID Field
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Doctor ID',
+                      labelStyle: const TextStyle(color: Colors.white),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.7),
+                      prefixIcon: const Icon(Icons.medical_services, color: Colors.black),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Password Field
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      labelStyle: const TextStyle(color: Colors.white),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.7),
+                      prefixIcon: const Icon(Icons.lock, color: Colors.black),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // "Paw Button" (Small, round button with only paw icon)
+                  Center(
+                    child: SizedBox(
+                      width: 60, // Small circular button
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Animate the transition to the HomePage with a "paw-like" effect
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                const begin = 0.0;
+                                const end = 1.0;
+                                const curve = Curves.easeInOut;
+
+                                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                var scaleAnimation = animation.drive(tween);
+
+                                return ScaleTransition(
+                                  scale: scaleAnimation,
+                                  child: child,
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          shape: const CircleBorder(), // Circular shape
+                          padding: const EdgeInsets.all(15), // Padding to make it circular
+                          elevation: 5,
                         ),
+                        child: const Icon(Icons.pets, color: Colors.white), // Only the paw icon
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-              // Existing Image and Text
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/doodle.png', // Replace with your logo path
-                    width: 120,
-                    height: 120,
-                  ),
-
-                  const Text(
-                    'Pawsitive Care, Every Time!',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
+                  // Bottom message
+                  Center(
+                    child: Column(
+                      children: [
+                        Image.asset(
+                          'assets/doodle.png', // Replace with your image path
+                          width: 100,
+                          height: 100,
+                        ),
+                        const Text(
+                          'Pawsitive Care, Every Time!',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 10.0,
+                                color: Colors.black45,
+                                offset: Offset(2.0, 2.0),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 30), // Optional space at the bottom
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

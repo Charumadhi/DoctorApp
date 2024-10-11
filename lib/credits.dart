@@ -1,3 +1,4 @@
+import 'package:doctor_app/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:doctor_app/statistics.dart';
 class CreditsPage extends StatelessWidget {
@@ -136,6 +137,11 @@ class CreditsPage extends StatelessWidget {
     } else if (index == 1) {
     // Navigate to HistoryPage
     Navigator.push(context, MaterialPageRoute(builder: (context) => StatisticsPage()));
+
+    }
+    else if (index == 2) {
+      // Navigate to HistoryPage
+      Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage()));
 
     }
     },
