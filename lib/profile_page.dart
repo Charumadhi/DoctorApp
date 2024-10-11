@@ -9,27 +9,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool _isDarkTheme = false;
-
-  void _toggleTheme(bool value) {
-    setState(() {
-      _isDarkTheme = value;
-    });
-
-    // Use the theme toggle logic here (global app theme change)
-    if (_isDarkTheme) {
-      // Switch to dark theme logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Switched to Dark Theme')),
-      );
-    } else {
-      // Switch to light theme logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Switched to Light Theme')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,62 +16,66 @@ class _ProfilePageState extends State<ProfilePage> {
         title: const Text('Profile Page'),
         backgroundColor: Colors.blue,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Top Center Title
-            Align(
-              alignment: Alignment.topCenter,
-              child: Text(
-                'Hello!! Dr. Jenniffer',
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade100, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Avatar
+              CircleAvatar(
+                radius: 60,
+                backgroundImage: AssetImage('assets/doctor.jpg'), // Replace with your avatar image
+              ),
+              SizedBox(height: 20),
+              // Greeting Message
+              Text(
+                'Dr. Jenniffer',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            ),
-            SizedBox(height: 50), // Spacing from top
+              SizedBox(height: 30), // Spacing from top
 
-            // Theme Option
-            // ListTile(
-            //   leading: Icon(Icons.brightness_6, size: 30),
-            //   title: Text('Theme', style: TextStyle(fontSize: 20)),
-            //   trailing: Switch(
-            //     value: _isDarkTheme,
-            //     onChanged: _toggleTheme,
-            //     activeColor: Colors.blue,
-            //     inactiveThumbColor: Colors.grey,
-            //   ),
-            // ),
-            // SizedBox(height: 20), // Spacing between items
+              // Credits Option
+              Card(
+                margin: EdgeInsets.symmetric(vertical: 10),
+                child: ListTile(
+                  leading: Icon(Icons.info, size: 30),
+                  title: Text('Credits', style: TextStyle(fontSize: 20)),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CreditsPage()),
+                    );
+                  },
+                ),
+              ),
 
-            // Credits Option
-            ListTile(
-              leading: Icon(Icons.info, size: 30),
-              title: Text('Credits', style: TextStyle(fontSize: 20)),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CreditsPage()),
-                );
-              },
-            ),
-            SizedBox(height: 20), // Spacing between items
+              // Logout Option
+              Card(
+                margin: EdgeInsets.symmetric(vertical: 10),
+                child: ListTile(
+                  leading: Icon(Icons.logout, size: 30),
+                  title: Text('Log Out', style: TextStyle(fontSize: 20)),
+                  onTap: () {
+                    // Log out logic here
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Logged out')),
+                    );
 
-            // Logout Option
-            ListTile(
-              leading: Icon(Icons.logout, size: 30),
-              title: Text('Log Out', style: TextStyle(fontSize: 20)),
-              onTap: () {
-                // Log out logic here
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Logged out')),
-                );
-
-                // Navigate back to the login page
-                Navigator.pushReplacementNamed(context, '/login'); // Ensure '/login' route is defined in your app
-              },
-            ),
-          ],
+                    // Navigate back to the login page
+                    Navigator.pushReplacementNamed(context, '/login'); // Ensure '/login' route is defined in your app
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       // Bottom Navigation Bar
@@ -118,9 +101,11 @@ class _ProfilePageState extends State<ProfilePage> {
             // Navigate to HomePage
             Navigator.pushNamed(context, '/home');
           } else if (index == 1) {
-            // Navigate to HistoryPage
-            Navigator.push(context, MaterialPageRoute(builder: (context) => StatisticsPage()));
-
+            // Navigate to StatisticsPage
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => StatisticsPage()),
+            );
           }
           // No action for Profile since we are already on this page
         },
