@@ -28,13 +28,21 @@ class RabitrackRiverApp extends StatelessWidget {
         '/statistics': (context) => StatisticsPage(), // Define the route for StatisticsPage
         '/home': (context) => HomePage(), // Define the route for HomePage
         '/profile': (context) => ProfilePage(), // Define the route for ProfilePage
+        '/register': (context) => const RegistrationPage(), // Define the route for RegistrationPage
       },
     );
   }
 }
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  bool isLogin = true; // Toggle between login and registration
 
   @override
   Widget build(BuildContext context) {
@@ -95,111 +103,208 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Doctor ID Field
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Doctor ID',
-                      labelStyle: const TextStyle(color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.7),
-                      prefixIcon: const Icon(Icons.medical_services, color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
+                  // Toggle Button
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        isLogin = !isLogin;
+                      });
+                    },
+                    child: Text(
+                      isLogin ? 'New User? Register Here' : 'Already a User? Login Here',
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    style: const TextStyle(color: Colors.black),
                   ),
+
                   const SizedBox(height: 20),
 
-                  // Password Field
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: const TextStyle(color: Colors.white),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.7),
-                      prefixIcon: const Icon(Icons.lock, color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                    obscureText: true,
-                    style: const TextStyle(color: Colors.black),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // "Paw Button" (Small, round button with only paw icon)
-                  Center(
-                    child: SizedBox(
-                      width: 60, // Small circular button
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Animate the transition to the HomePage with a "paw-like" effect
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                const begin = 0.0;
-                                const end = 1.0;
-                                const curve = Curves.easeInOut;
-
-                                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                var scaleAnimation = animation.drive(tween);
-
-                                return ScaleTransition(
-                                  scale: scaleAnimation,
-                                  child: child,
-                                );
-                              },
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          shape: const CircleBorder(), // Circular shape
-                          padding: const EdgeInsets.all(15), // Padding to make it circular
-                          elevation: 5,
-                        ),
-                        child: const Icon(Icons.pets, color: Colors.white), // Only the paw icon
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Bottom message
-                  Center(
-                    child: Column(
-                      children: [
-                        Image.asset(
-                          'assets/doodle.png', // Replace with your image path
-                          width: 100,
-                          height: 100,
-                        ),
-                        const Text(
-                          'Pawsitive Care, Every Time!',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                blurRadius: 10.0,
-                                color: Colors.black45,
-                                offset: Offset(2.0, 2.0),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Conditional Form Rendering
+                  isLogin ? _buildLoginForm(context) : _buildRegistrationForm(context),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoginForm(BuildContext context) {
+    return Column(
+      children: [
+        // Doctor ID Field
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Doctor ID',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            prefixIcon: const Icon(Icons.medical_services, color: Colors.black),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          style: const TextStyle(color: Colors.black),
+        ),
+        const SizedBox(height: 20),
+
+        // Password Field
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Password',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            prefixIcon: const Icon(Icons.lock, color: Colors.black),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          obscureText: true,
+          style: const TextStyle(color: Colors.black),
+        ),
+        const SizedBox(height: 30),
+
+        // "Paw Button" (Small, round button with only paw icon)
+        Center(
+          child: SizedBox(
+            width: 60, // Small circular button
+            height: 60,
+            child: ElevatedButton(
+              onPressed: () {
+                // Animate the transition to the HomePage with a "paw-like" effect
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      const begin = 0.0;
+                      const end = 1.0;
+                      const curve = Curves.easeInOut;
+
+                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                      var scaleAnimation = animation.drive(tween);
+
+                      return ScaleTransition(
+                        scale: scaleAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                shape: const CircleBorder(), // Circular shape
+                padding: const EdgeInsets.all(15), // Padding to make it circular
+                elevation: 5,
+              ),
+              child: const Icon(Icons.pets, color: Colors.white), // Only the paw icon
+            ),
+          ),
+        ),
+        const SizedBox(height: 30),
+      ],
+    );
+  }
+
+  Widget _buildRegistrationForm(BuildContext context) {
+    return Column(
+      children: [
+        // Name Field
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Name',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          style: const TextStyle(color: Colors.black),
+        ),
+        const SizedBox(height: 20),
+
+        // Registration Number Field
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Registration Number (e.g., PVC0058)',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          style: const TextStyle(color: Colors.black),
+        ),
+        const SizedBox(height: 20),
+
+        // Working In Field
+        DropdownButtonFormField<String>(
+          decoration: InputDecoration(
+            labelText: 'Working In',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          items: <String>['Government Sector', 'Private Sector']
+              .map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value, style: const TextStyle(color: Colors.black)),
+            );
+          }).toList(),
+          onChanged: (String? value) {},
+        ),
+        const SizedBox(height: 20),
+
+        // Additional Fields based on Work Type
+        // (These fields can be shown conditionally based on the dropdown selection)
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Address of Workplace',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          style: const TextStyle(color: Colors.black),
+        ),
+        const SizedBox(height: 30),
+
+        // Register Button
+        ElevatedButton(
+          onPressed: () {
+            // Handle registration logic here
+            // For example, save user data and navigate to the HomePage
+            Navigator.pushNamed(context, '/home');
+          },
+          child: const Text('Register'),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+}
+
+class RegistrationPage extends StatelessWidget {
+  const RegistrationPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Registration'),
+      ),
+      body: Center(
+        child: const Text('Registration Form Goes Here'), // Placeholder
       ),
     );
   }
