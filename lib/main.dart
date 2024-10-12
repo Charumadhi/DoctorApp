@@ -62,30 +62,27 @@ class _LoginPageState extends State<LoginPage> {
           Container(
             color: Colors.black.withOpacity(0.5),
           ),
-          // Scrollable content
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  const SizedBox(height: 60), // Add some space from the top
+          // Centered content
+          Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const SizedBox(height: 60), // Add some space from the top
 
-                  // Logo Image
-                  Center(
-                    child: Image.asset(
+                    // Centered Logo Image
+                    Image.asset(
                       'assets/Rabitrackrivertr.png', // Replace with your logo image path
-                      width: 150,
-                      height: 150,
+                      width: 50, // Adjust logo size as needed
+                      height: 70,
                     ),
-                  ),
 
-                  const SizedBox(height: 30), // Space between logo and text
+                    const SizedBox(height: 20), // Space between logo and text
 
-                  // Welcome Text
-                  const Center(
-                    child: Text(
+                    // Welcome Text
+                    const Text(
                       'Welcome, Doctor!',
                       style: TextStyle(
                         fontSize: 32,
@@ -100,27 +97,27 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Toggle Button
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        isLogin = !isLogin;
-                      });
-                    },
-                    child: Text(
-                      isLogin ? 'New User? Register Here' : 'Already a User? Login Here',
-                      style: const TextStyle(color: Colors.white),
+                    // Toggle Button
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          isLogin = !isLogin;
+                        });
+                      },
+                      child: Text(
+                        isLogin ? 'New User? Register Here' : 'Already a User? Login Here',
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Conditional Form Rendering
-                  isLogin ? _buildLoginForm(context) : _buildRegistrationForm(context),
-                ],
+                    // Conditional Form Rendering
+                    isLogin ? _buildLoginForm(context) : _buildRegistrationForm(context),
+                  ],
+                ),
               ),
             ),
           ),
@@ -278,7 +275,18 @@ class _LoginPageState extends State<LoginPage> {
           style: const TextStyle(color: Colors.black),
         ),
         const SizedBox(height: 30),
-
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'District',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          style: const TextStyle(color: Colors.black),
+        ),
         // Register Button
         ElevatedButton(
           onPressed: () {
@@ -304,7 +312,7 @@ class RegistrationPage extends StatelessWidget {
         title: const Text('Registration'),
       ),
       body: Center(
-        child: const Text('Registration Form Goes Here'), // Placeholder
+        child: const Text('Registration Page Goes Here'),
       ),
     );
   }
