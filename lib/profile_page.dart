@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:doctor_app/credits.dart'; // Replace with correct path if needed
 import 'package:doctor_app/statistics.dart'; // Update with the correct path if necessary
-import 'main.dart';
+import 'package:doctor_app/home.dart'; // Ensure HomePage is imported
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -11,6 +11,16 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
+    // Retrieve the doctor information passed as arguments
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    final Map<String, dynamic> doctorInfo = arguments as Map<String, dynamic>;
+
+    // Get the doctor name and ID from the arguments
+    final String doctorName = doctorInfo['doctorName'] ?? 'Unknown';
+    final String doctorId = doctorInfo['doctorId'] ?? 'Unknown';
+    final String area = doctorInfo['area'] ?? 'Unknown';
+    final String district = doctorInfo['district'] ?? 'Unknown';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile Page'),
@@ -35,10 +45,26 @@ class _ProfilePageState extends State<ProfilePage> {
                 backgroundImage: AssetImage('assets/doctor.jpg'), // Replace with your avatar image
               ),
               SizedBox(height: 20),
-              // Greeting Message
+
+              // Display the doctor’s name dynamically
               Text(
-                'Dr. Jenniffer',
+                'Dr. $doctorName',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Doctor ID: $doctorId',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Area: $area',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'District: $district',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
               ),
               SizedBox(height: 30), // Spacing from top
 
@@ -98,13 +124,22 @@ class _ProfilePageState extends State<ProfilePage> {
         selectedItemColor: Colors.blue,
         onTap: (index) {
           if (index == 0) {
-            // Navigate to HomePage
-            Navigator.pushNamed(context, '/home');
-          } else if (index == 1) {
-            // Navigate to StatisticsPage
+            // Navigate to HomePage and pass doctorInfo
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => StatisticsPage()),
+              MaterialPageRoute(
+                builder: (context) => HomePage(),
+                settings: RouteSettings(arguments: doctorInfo),
+              ),
+            );
+          } else if (index == 1) {
+            // Navigate to StatisticsPage and pass doctorInfo
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => StatisticsPage(),
+                settings: RouteSettings(arguments: doctorInfo),
+              ),
             );
           }
           // No action for Profile since we are already on this page

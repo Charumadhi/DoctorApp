@@ -14,7 +14,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   Map<String, dynamic> districtCases = {};
 
   // Variable to hold error messages
-  String? errorMessage; // Changed to nullable to indicate no error initially
+  String? errorMessage; // Nullable to indicate no error initially
 
   // Function to fetch case count data from the API
   Future<void> fetchCaseData() async {
@@ -30,7 +30,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
         if (data is List) {
           setState(() {
             districtCases = {
-              for (var item in data) item['district']: item['count'] // Change 'cases' to 'count'
+              for (var item in data) item['district']: item['count'] // 'count' holds case data
             };
           });
         } else {
@@ -42,7 +42,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     } catch (e) {
       print('Error occurred: $e'); // Log error
       setState(() {
-        errorMessage = 'Failed to load data'; // Set the error message
+        errorMessage = 'Failed to load data'; // Set error message
       });
     }
   }
@@ -50,11 +50,21 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   void initState() {
     super.initState();
-    fetchCaseData(); // Fetch data when the screen is initialized
+    fetchCaseData(); // Fetch data when screen is initialized
   }
 
   @override
   Widget build(BuildContext context) {
+    // Retrieve the doctor information passed as arguments
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    final Map<String, dynamic> doctorInfo = arguments as Map<String, dynamic>;
+
+    // Get the doctor name, ID, area, and district from the arguments
+    final String doctorName = doctorInfo['doctorName'] ?? 'Unknown';
+    final String doctorId = doctorInfo['doctorId'] ?? 'Unknown';
+    final String area = doctorInfo['area'] ?? 'Unknown';
+    final String district = doctorInfo['district'] ?? 'Unknown';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Statistics'),
@@ -94,7 +104,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
             // Districts List
             districtCases.isEmpty
-                ? CircularProgressIndicator() // Show a loader while data is being fetched
+                ? CircularProgressIndicator() // Show loader while data is being fetched
                 : Expanded(
               child: ListView(
                 children: districtCases.entries.map((entry) {
@@ -124,11 +134,23 @@ class _StatisticsPageState extends State<StatisticsPage> {
         selectedItemColor: Colors.blue,
         onTap: (index) {
           if (index == 0) {
-            // Navigate to HomePage
-            Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
+            // Navigate to HomePage and pass doctorInfo
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(),
+                settings: RouteSettings(arguments: doctorInfo),
+              ),
+            );
           } else if (index == 2) {
-            // Navigate to ProfilePage
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage()));
+            // Navigate to ProfilePage and pass doctorInfo
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfilePage(),
+                settings: RouteSettings(arguments: doctorInfo),
+              ),
+            );
           }
         },
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'attack_form.dart'; // Import the AttackForm screen
 import 'package:doctor_app/statistics.dart';
-
+import 'package:doctor_app/profile_page.dart'; // Import ProfilePage if necessary
 
 class HomePage extends StatelessWidget {
   @override
@@ -15,20 +15,21 @@ class HomePage extends StatelessWidget {
     final String doctorId = doctorInfo['doctorId'] ?? 'Unknown';
     final String area = doctorInfo['area'] ?? 'Unknown';
     final String district = doctorInfo['district'] ?? 'Unknown';
+
     return Scaffold(
-      extendBodyBehindAppBar: true, // Extend body behind the AppBar for better integration with the background image
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           'Home Page',
-          style: TextStyle(color: Colors.white), // White title color
+          style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.transparent, // Transparent AppBar for seamless integration
-        elevation: 0, // Remove shadow under AppBar
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: NetworkImage('https://img.freepik.com/free-photo/decorative-background-with-smoke_23-2147611841.jpg?t=st=1728209013~exp=1728212613~hmac=46bdd6f6b5b50ec9aabecdc0befb6598e421c9e426c640612f9adef4aaad9656&w=360'), // Replace with your network image URL
+            image: NetworkImage('https://img.freepik.com/free-photo/decorative-background-with-smoke_23-2147611841.jpg'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
               Colors.blue.withOpacity(0.4),
@@ -36,20 +37,19 @@ class HomePage extends StatelessWidget {
             ),
           ),
         ),
-        child: SingleChildScrollView( // Wrap the content in a scrollable widget
+        child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0), // Increased padding for a cleaner look
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: kToolbarHeight + 20), // Adjust for AppBar height
-
+                SizedBox(height: kToolbarHeight + 20),
                 Text(
                   'Welcome Back',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white, // White text for better visibility
+                    color: Colors.white,
                     shadows: [
                       Shadow(
                         blurRadius: 10.0,
@@ -61,13 +61,12 @@ class HomePage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 10),
-
                 Text(
                   'Dr. $doctorName (ID: $doctorId)',
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white, // White name text
+                    color: Colors.white,
                     shadows: [
                       Shadow(
                         blurRadius: 10.0,
@@ -79,13 +78,11 @@ class HomePage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 20),
-
                 CircleAvatar(
                   radius: 60,
-                  backgroundImage: AssetImage('assets/doctor.jpg'), // Replace with your avatar image path
+                  backgroundImage: AssetImage('assets/doctor.jpg'),
                 ),
                 SizedBox(height: 40),
-
                 buildActionButton(
                   context,
                   'View Past Attack Reports',
@@ -94,7 +91,6 @@ class HomePage extends StatelessWidget {
                   Colors.white,
                 ),
                 SizedBox(height: 25),
-
                 buildActionButton(
                   context,
                   'Create New Attack Report',
@@ -106,7 +102,7 @@ class HomePage extends StatelessWidget {
                     doctorName: doctorName,
                     area: area,
                     district: district,
-                  ), // Pass the AttackForm screen to navigate to
+                  ),
                 ),
               ],
             ),
@@ -136,10 +132,19 @@ class HomePage extends StatelessWidget {
           } else if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => StatisticsPage()),
+              MaterialPageRoute(
+                builder: (context) => StatisticsPage(),
+                settings: RouteSettings(arguments: doctorInfo), // Pass doctorInfo to StatisticsPage
+              ),
             );
           } else if (index == 2) {
-            Navigator.pushNamed(context, '/profile');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfilePage(),
+                settings: RouteSettings(arguments: doctorInfo), // Pass doctorInfo to ProfilePage
+              ),
+            );
           }
         },
       ),
