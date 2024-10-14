@@ -6,6 +6,15 @@ import 'package:doctor_app/statistics.dart';
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    // If arguments are not null, cast to Map<String, String>
+    final Map<String, dynamic> doctorInfo = arguments as Map<String, dynamic>;
+
+    // Get the doctor name and ID from the arguments
+    final String doctorName = doctorInfo['doctorName'] ?? 'Unknown';
+    final String doctorId = doctorInfo['doctorId'] ?? 'Unknown';
+    final String area = doctorInfo['area'] ?? 'Unknown';
+    final String district = doctorInfo['district'] ?? 'Unknown';
     return Scaffold(
       extendBodyBehindAppBar: true, // Extend body behind the AppBar for better integration with the background image
       appBar: AppBar(
@@ -54,15 +63,15 @@ class HomePage extends StatelessWidget {
                 SizedBox(height: 10),
 
                 Text(
-                  'Dr. Jenniffer',
-                  style: TextStyle(
+                  'Dr. $doctorName (ID: $doctorId)',
+                  style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: Colors.white, // White name text
                     shadows: [
                       Shadow(
                         blurRadius: 10.0,
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black54,
                         offset: Offset(0, 4),
                       ),
                     ],
@@ -92,7 +101,12 @@ class HomePage extends StatelessWidget {
                   Icons.create,
                   Colors.indigo.shade700.withOpacity(0.6),
                   Colors.white,
-                  navigateTo: AttackFormPage(), // Pass the AttackForm screen to navigate to
+                  navigateTo: AttackFormPage(
+                    doctorId: doctorId,
+                    doctorName: doctorName,
+                    area: area,
+                    district: district,
+                  ), // Pass the AttackForm screen to navigate to
                 ),
               ],
             ),

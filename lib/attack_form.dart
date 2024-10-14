@@ -4,23 +4,36 @@ import 'attacker_details.dart';
 import 'profile_page.dart';
 import 'package:doctor_app/statistics.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Attack Form',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: AttackFormPage(),
-    );
-  }
-}
+// void main() {
+//   runApp(MyApp());
+// }
+//
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       title: 'Attack Form',
+//       theme: ThemeData(primarySwatch: Colors.blue),
+//       home: AttackFormPage(),
+//     );
+//   }
+// }
 
 class AttackFormPage extends StatefulWidget {
+
+  final String doctorId;
+  final String doctorName;
+  final String area;
+  final String district;
+
+  AttackFormPage({
+    required this.doctorId,
+    required this.doctorName,
+    required this.area,
+    required this.district,
+  });
+
   @override
   _AttackFormPageState createState() => _AttackFormPageState();
 }
@@ -145,11 +158,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
         backgroundColor: Colors.blue,
       ),
       body: Container(
-        decoration: BoxDecoration(
-
-
-
-        ),
+        decoration: BoxDecoration(),
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Form(
@@ -224,32 +233,32 @@ class _AttackFormPageState extends State<AttackFormPage> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _ageUnit,
-                        decoration: InputDecoration(
-                          labelText: 'Unit',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15), // Rounded corners
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.8), // Slightly transparent background
-                        ),
-                        items: <String>['Months', 'Years']
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _ageUnit = newValue!;
-                          });
-                        },
-                      ),
-                    ),
+                    // const SizedBox(width: 10),
+                    // Expanded(
+                    //   child: DropdownButtonFormField<String>(
+                    //     value: _ageUnit,
+                    //     decoration: InputDecoration(
+                    //       labelText: 'Unit',
+                    //       border: OutlineInputBorder(
+                    //         borderRadius: BorderRadius.circular(15), // Rounded corners
+                    //       ),
+                    //       filled: true,
+                    //       fillColor: Colors.white.withOpacity(0.8), // Slightly transparent background
+                    //     ),
+                    //     items: <String>['Months', 'Years']
+                    //         .map<DropdownMenuItem<String>>((String value) {
+                    //       return DropdownMenuItem<String>(
+                    //         value: value,
+                    //         child: Text(value),
+                    //       );
+                    //     }).toList(),
+                    //     onChanged: (String? newValue) {
+                    //       setState(() {
+                    //         _ageUnit = newValue!;
+                    //       });
+                    //     },
+                    //   ),
+                    // ),
                   ],
                 ),
                 const SizedBox(height: 20),

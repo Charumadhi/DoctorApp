@@ -3,6 +3,8 @@ import 'package:doctor_app/statistics.dart'; // Import your StatisticsPage
 import 'package:doctor_app/home.dart'; // Import your HomePage
 import 'package:doctor_app/profile_page.dart'; // Import your ProfilePage
 import 'theme_provider.dart'; // Import your theme provider
+import 'package:http/http.dart' as http;
+import 'dart:convert'; // Add this line
 
 void main() {
   runApp(const RabitrackRiverApp());
@@ -127,10 +129,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildLoginForm(BuildContext context) {
+    final TextEditingController idController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+
     return Column(
       children: [
         // Doctor ID Field
         TextField(
+          controller: idController,
           decoration: InputDecoration(
             labelText: 'Doctor ID',
             labelStyle: const TextStyle(color: Colors.white),
@@ -147,6 +153,7 @@ class _LoginPageState extends State<LoginPage> {
 
         // Password Field
         TextField(
+          controller: passwordController,
           decoration: InputDecoration(
             labelText: 'Password',
             labelStyle: const TextStyle(color: Colors.white),
@@ -168,27 +175,80 @@ class _LoginPageState extends State<LoginPage> {
             width: 60, // Small circular button
             height: 60,
             child: ElevatedButton(
-              onPressed: () {
-                // Animate the transition to the HomePage with a "paw-like" effect
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      const begin = 0.0;
-                      const end = 1.0;
-                      const curve = Curves.easeInOut;
+              onPressed: () async {
+                // Extract doctor ID and password
+                final doctorId = idController.text.trim();
+                final password = passwordController.text.trim();
+                print("Id is $doctorId");
 
-                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                      var scaleAnimation = animation.drive(tween);
+                // Log the request URL for debugging
+                final url = 'https://rabitrack-backend-production.up.railway.app/login';
 
-                      return ScaleTransition(
-                        scale: scaleAnimation,
-                        child: child,
-                      );
+                try {
+                  // Create JSON body
+                  final body = jsonEncode({
+                    'doctorId': doctorId, // Include doctorId in the JSON body
+                  });
+
+                  final response = await http.post(
+                    Uri.parse(url),
+                    headers: {
+                      'Content-Type': 'application/json', // Required for POST
+                      'Accept': 'application/json',
                     },
-                  ),
-                );
+                    body: body, // Send the JSON body
+                  );
+
+
+                  // Log the response status and body for debugging
+                  print("Response status: ${response.statusCode}");
+                  print("Response body: ${response.body}");
+
+                  print("Id is $doctorId");
+
+                  // Check if the response is successful
+                  if (response.statusCode == 200) {
+                    try {
+                      final data = json.decode(response.body);
+                      print("The data is: $data");
+
+                      // Logging individual details for verification
+                      print("Doctor ID: ${data['doctor_id']}");
+                      print("Doctor Name: ${data['doctor_name']}");
+                      print("Working In: ${data['working_in']}");
+                      print("District: ${data['district']}");
+                      print("Area: ${data['area']}");
+
+                      if (data['isAuth'] == true) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HomePage(),
+                            settings: RouteSettings(
+                              arguments: {
+                                'doctorName': data['doctor_name'], // Assuming these keys are in the response
+                                'doctorId': data['doctor_id'],      // Ensure these keys exist in the response
+                                'area': data['area'],
+                                'district': data['district'],
+                              },
+                            ),
+                          ),
+                        );
+                      } else {
+                        _showErrorDialog(context, "Invalid credentials");
+                      }
+                    } catch (jsonError) {
+                      // Handle JSON decoding error
+                      _showErrorDialog(context, "Unexpected server response");
+                      print("JSON parsing error: $jsonError");
+                    }
+                  } else {
+                    print("Error: ${response.reasonPhrase}"); // Log reason phrase
+                  }
+                } catch (error) {
+                  _showErrorDialog(context, "An error occurred");
+                  print("Error logging in: $error");
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
@@ -205,11 +265,37 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            child: Text('Okay'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRegistrationForm(BuildContext context) {
+
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController regNoController = TextEditingController();
+    final TextEditingController areaController = TextEditingController();
+    String? workType;
+    String? workDistrict;
+
     return Column(
       children: [
         // Name Field
         TextField(
+          controller: nameController,
           decoration: InputDecoration(
             labelText: 'Name',
             labelStyle: const TextStyle(color: Colors.white),
@@ -225,6 +311,7 @@ class _LoginPageState extends State<LoginPage> {
 
         // Registration Number Field
         TextField(
+          controller: regNoController,
           decoration: InputDecoration(
             labelText: 'Registration Number (e.g., PVC0058)',
             labelStyle: const TextStyle(color: Colors.white),
@@ -256,15 +343,15 @@ class _LoginPageState extends State<LoginPage> {
               child: Text(value, style: const TextStyle(color: Colors.black)),
             );
           }).toList(),
-          onChanged: (String? value) {},
+          onChanged: (String? value) {
+            workType = value;
+          },
         ),
-        const SizedBox(height: 20),
-
-        // Additional Fields based on Work Type
-        // (These fields can be shown conditionally based on the dropdown selection)
-        TextField(
+        const SizedBox(height: 30),
+        // Address of Workplace Field
+        DropdownButtonFormField<String>(
           decoration: InputDecoration(
-            labelText: 'Address of Workplace',
+            labelText: 'Working district',
             labelStyle: const TextStyle(color: Colors.white),
             filled: true,
             fillColor: Colors.white.withOpacity(0.7),
@@ -272,12 +359,25 @@ class _LoginPageState extends State<LoginPage> {
               borderRadius: BorderRadius.circular(15),
             ),
           ),
-          style: const TextStyle(color: Colors.black),
+          items: <String>['Puducherry', 'Karaikal', 'Mahe', 'Yenam']
+              .map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value, style: const TextStyle(color: Colors.black)),
+            );
+          }).toList(),
+          onChanged: (String? value) {
+            workDistrict = value;
+          },
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
+
+        // Additional Fields based on Work Type
+        // (These fields can be shown conditionally based on the dropdown selection)
         TextField(
+          controller: areaController,
           decoration: InputDecoration(
-            labelText: 'District',
+            labelText: 'Area of working',
             labelStyle: const TextStyle(color: Colors.white),
             filled: true,
             fillColor: Colors.white.withOpacity(0.7),
@@ -289,10 +389,69 @@ class _LoginPageState extends State<LoginPage> {
         ),
         // Register Button
         ElevatedButton(
-          onPressed: () {
-            // Handle registration logic here
-            // For example, save user data and navigate to the HomePage
-            Navigator.pushNamed(context, '/home');
+          onPressed: () async {
+            // Gather data from the form
+            final String name = nameController.text.trim();
+            final String regNo = regNoController.text.trim();
+            final String area = areaController.text.trim();
+
+            if (name.isEmpty || regNo.isEmpty || area.isEmpty || workType == null || workDistrict == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please fill in all fields.')),
+              );
+              return; // Exit the function early
+            }
+
+            // Define the API endpoint
+            final url = 'https://rabitrack-backend-production.up.railway.app/signup';
+
+            // Send a POST request
+            try {
+              final headers = {'Content-Type': 'application/json'};
+              final data = {
+                'doctorId': regNo,
+                'doctorName': name,
+                'workingIn': workType,
+                'district': workDistrict,
+                'area': area,
+              };
+
+              print('Sending request to $url with data: $data');
+
+              final response = await http.post(
+                Uri.parse(url),
+                headers: headers,
+                body: json.encode(data),
+              );
+
+
+              print('Response status: ${response.statusCode}');
+              print('Response body: ${response.body}');
+
+
+              if (response.statusCode == 200) {
+                // Define arguments to pass to the home page
+                final Map<String, String> arguments = {
+                  'doctorName': name,
+                  'doctorId': regNo,
+                };
+
+                // Navigate to the home page and pass arguments
+                Navigator.pushNamed(
+                  context,
+                  '/home',
+                  arguments: arguments,
+                );
+              }else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Registration failed.')),
+                );
+              }
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Network error occurred.')),
+              );
+            }
           },
           child: const Text('Register'),
         ),

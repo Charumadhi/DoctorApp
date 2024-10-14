@@ -87,28 +87,28 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
             Column(
               children: [
                 // Dropdown to select 'Months' or 'Years'
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: DropdownButtonFormField<String>(
-                    value: _ageUnit, // Default value is 'Years'
-                    decoration: InputDecoration(
-                      labelText: 'Unit (Months/Years)',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _ageUnit = newValue!; // Update the unit
-                      });
-                    },
-                    items: <String>['Months', 'Years']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.symmetric(vertical: 16.0),
+                //   child: DropdownButtonFormField<String>(
+                //     value: _ageUnit, // Default value is 'Years'
+                //     decoration: InputDecoration(
+                //       labelText: 'Unit (Months/Years)',
+                //       border: OutlineInputBorder(),
+                //     ),
+                //     onChanged: (String? newValue) {
+                //       setState(() {
+                //         _ageUnit = newValue!; // Update the unit
+                //       });
+                //     },
+                //     items: <String>['Months', 'Years']
+                //         .map<DropdownMenuItem<String>>((String value) {
+                //       return DropdownMenuItem<String>(
+                //         value: value,
+                //         child: Text(value),
+                //       );
+                //     }).toList(),
+                //   ),
+                // ),
                 // Age input field
                 TextFormField(
                   keyboardType: TextInputType.number,
