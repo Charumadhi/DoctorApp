@@ -1,71 +1,24 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';  // For encoding JSON objects
 
 class AttackerDetailsPage extends StatefulWidget {
-
-  final Map<String, dynamic> doctor;
-  final Map<String, dynamic> victim;
-
-  AttackerDetailsPage({required this.doctor, required this.victim});
-
   @override
   _AttackerDetailsPageState createState() => _AttackerDetailsPageState();
 }
 
 class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
-  final _formKey = GlobalKey<FormState>();
-  String? _species;
-  String? _breed;
+  String? _animalOwnership;
+  String? _animalType;
   int? _age;
-  bool _vaccinationStatus = false; // tinyint in the backend (true/false)
+  String _ageUnit = 'Years'; // Default unit is 'Years
+  String? _vaccinationStatus;
+  String? _vaccinationState;
   String? _animalCondition;
-  String? _gender;
-  int? _pincode;
 
   void _submitForm() {
-    if (_formKey.currentState?.validate() ?? false) {
-      print("Form is valid, navigating to FirstQuestionPage");
-      Map<String, dynamic> attacker = {
-        'attackerSpecies': _species,
-        'age': _age,
-        'sex': _gender,
-        'breed': _breed,
-        'vaccinationStatus': _vaccinationStatus,
-        'condition': _animalCondition,
-        'pincode': _pincode,
-      };
-      print("Moving to first question page");
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => FirstQuestionPage(
-          doctor: widget.doctor,
-          victim: widget.victim,
-          attacker: attacker,
-        )),
-      );
-    }
-  }
-
-  Widget _buildDropdownField(String label, String? value, List<String> items, ValueChanged<String?> onChanged) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.8),
-      ),
-      items: items
-          .map((item) => DropdownMenuItem<String>(
-        value: item,
-        child: Text(item),
-      ))
-          .toList(),
-      onChanged: onChanged,
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => FirstQuestionPage()),
     );
   }
 
@@ -78,8 +31,6 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Form( // Make sure to wrap your Column in a Form widget
-          key: _formKey, // Use the _formKey
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -93,40 +44,42 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
             ),
             const SizedBox(height: 20),
 
-            TextFormField(
+            DropdownButtonFormField<String>(
+              value: _animalOwnership,
               decoration: InputDecoration(
-                labelText: 'What kind of species is it?',  // Label for the text field
-                border: OutlineInputBorder(),  // Border around the text field
+                labelText: 'Do you know what Animal it is?',
+                border: OutlineInputBorder(),
+                hintText: 'Select Category',
+                hintStyle: TextStyle(color: Colors.purple),
               ),
+              items: ['Owned', 'Stray'].map((ownership) => DropdownMenuItem<String>(
+                value: ownership,
+                child: Text(ownership),
+              )).toList(),
               onChanged: (value) {
                 setState(() {
-                  _species = value;  // Store the input text in a variable
+                  _animalOwnership = value;
                 });
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter the species';  // Validation message
-                }
-                return null;
               },
             ),
             const SizedBox(height: 20),
 
-            TextFormField(
+            DropdownButtonFormField<String>(
+              value: _animalType,
               decoration: InputDecoration(
-                labelText: 'What kind of breed is it?',  // Label for the text field
-                border: OutlineInputBorder(),  // Border around the text field
+                labelText: 'What Kind of Animal it is?',
+                border: OutlineInputBorder(),
+                hintText: 'Select Species',
+                hintStyle: TextStyle(color: Colors.purple),
               ),
+              items: ['Dog', 'Cattle', 'Cat'].map((type) => DropdownMenuItem<String>(
+                value: type,
+                child: Text(type),
+              )).toList(),
               onChanged: (value) {
                 setState(() {
-                  _breed = value;  // Store the input text in a variable
+                  _animalType = value;
                 });
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter the breed';  // Validation message
-                }
-                return null;
               },
             ),
             const SizedBox(height: 20),
@@ -182,61 +135,46 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
               ],
             ),
             const SizedBox(height: 20),
-            _buildDropdownField('What gender is it?', _gender, ['M', 'F'], (value) {
-              setState(() {
-                _gender = value;
-              });
-            }),
-            const SizedBox(height: 20),
-            TextFormField(
+
+            DropdownButtonFormField<String>(
+              value: _vaccinationStatus,
               decoration: InputDecoration(
-                labelText: 'Please enter the pincode where the attack happened.',  // Label for the text field
-                border: OutlineInputBorder(),  // Border around the text field
+                labelText: 'Do you know its Vaccination Status?',
+                border: OutlineInputBorder(),
+                hintText: 'Select Vaccination Status',
+                hintStyle: TextStyle(color: Colors.purple),
               ),
+              items: ['Known', 'Unknown'].map((status) => DropdownMenuItem<String>(
+                value: status,
+                child: Text(status),
+              )).toList(),
               onChanged: (value) {
                 setState(() {
-                  _pincode = int.tryParse(value);  // Safely parse to int
+                  _vaccinationStatus = value;
                 });
               },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter the pincode';  // Validation message
-                }
-                // Optional: You can add more validation here to check the length or format of the pincode
-                if (value.length != 6) {
-                  return 'Please enter a valid 6-digit pincode';  // Example additional validation
-                }
-                return null;  // Valid input
-              },
             ),
-
             const SizedBox(height: 20),
 
-            // DropdownButtonFormField<String>(
-            //   value: _vaccinationStatus,
-            //   decoration: InputDecoration(
-            //     labelText: 'Do you know its Vaccination Status?',
-            //     border: OutlineInputBorder(),
-            //     hintText: 'Select Vaccination Status',
-            //     hintStyle: TextStyle(color: Colors.purple),
-            //   ),
-            //   items: ['Known', 'Unknown'].map((status) => DropdownMenuItem<String>(
-            //     value: status,
-            //     child: Text(status),
-            //   )).toList(),
-            //   onChanged: (value) {
-            //     setState(() {
-            //       _vaccinationStatus = value;
-            //     });
-            //   },
-            // ),
-            // const SizedBox(height: 20),
-
-            _buildDropdownField('Vaccination Status', _vaccinationStatus ? '1' : '0', ['1', '0'], (value) {
-              setState(() {
-                _vaccinationStatus = value == '1'; // Convert to tinyint
-              });
-            }),
+            if (_vaccinationStatus == 'Known')
+              DropdownButtonFormField<String>(
+                value: _vaccinationState,
+                decoration: InputDecoration(
+                  labelText: 'Select Vaccination Status',
+                  border: OutlineInputBorder(),
+                  hintText: 'Select Status',
+                  hintStyle: TextStyle(color: Colors.purple),
+                ),
+                items: ['Vaccinated', 'Not Vaccinated'].map((state) => DropdownMenuItem<String>(
+                  value: state,
+                  child: Text(state),
+                )).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _vaccinationState = value;
+                  });
+                },
+              ),
             const SizedBox(height: 10),
 
             DropdownButtonFormField<String>(
@@ -284,69 +222,113 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class FirstQuestionPage extends StatelessWidget {
+  void _nextQuestion(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SecondQuestionPage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // Full-screen background image
+          Image.network(
+            'https://img.freepik.com/free-photo/vertical-shot-grey-cat-with-blue-eyes-dark_181624-34787.jpg?size=626&ext=jpg&ga=GA1.1.1819120589.1728086400&semt=ais_hybrid',
+            height: double.infinity,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          // Centered content on top of the background image
+          Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20), // Adjust the horizontal padding as needed
+              child: Container(
+              padding: EdgeInsets.all(40),
+              decoration: BoxDecoration(
+                color: Colors.grey[300]?.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Was the first aid given?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _nextQuestion(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black12,
+                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text(
+                            'Yes',
+                            style: TextStyle(
+                               fontSize: 16,
+                               fontWeight: FontWeight.bold,
+                               color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => _nextQuestion(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black12,
+                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text(
+                          'No',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class FirstQuestionPage extends StatefulWidget {
-  final Map<String, dynamic> doctor;
-  final Map<String, dynamic> victim;
-  final Map<String, dynamic> attacker;
-
-  FirstQuestionPage({required this.doctor, required this.victim, required this.attacker});
-
-  @override
-  _FirstQuestionPageState createState() => _FirstQuestionPageState();
-}
-
-class _FirstQuestionPageState extends State<FirstQuestionPage> {
-
-  Future<void> _nextQuestion(BuildContext context, String firstaidStatus) async {
-    // Update the victim map with firstaidStatus
-    widget.victim['firstAidStatus'] = firstaidStatus;
-
-    // Update the doctor map with updated attacker and victim details
-    widget.doctor['attacker'] = widget.attacker;
-    widget.doctor['victim'] = widget.victim;
-
-    // Prepare the URL for the API endpoint
-    final url = Uri.parse('https://rabitrack-backend-production.up.railway.app/addNewCase');
-
-    try {
-      // Send a POST request to store the details in the database
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(widget.doctor), // Send the doctor map as JSON
-      );
-
-      // Check if the request was successful
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Navigate to the SuccessPage if data is stored successfully
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SuccessPage(), // Pass empty map to SuccessPage
-          ),
-        );
-      } else {
-        // Handle error response here (e.g., show an error message)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit data: ${response.body}')),
-        );
-        print(response.body);
-      }
-    } catch (error) {
-      // Handle network or other errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred: $error')),
-      );
-    }
+class SecondQuestionPage extends StatelessWidget {
+  void _finish(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SuccessPage()),
+    );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -375,7 +357,7 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Was the first aid given?',
+                      'Was the bite washed for 15 mins in tap water?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 22,
@@ -388,7 +370,7 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
-                          onPressed: () => _nextQuestion(context, 'Yes'),
+                          onPressed: () => _finish(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black12,
                             padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
@@ -406,7 +388,7 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
                           ),
                         ),
                         ElevatedButton(
-                          onPressed: () => _nextQuestion(context, 'No'),
+                          onPressed: () => _finish(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black12,
                             padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
@@ -436,10 +418,7 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
   }
 }
 
-
-
 class SuccessPage extends StatefulWidget {
-
   @override
   _SuccessPageState createState() => _SuccessPageState();
 }
@@ -447,7 +426,6 @@ class SuccessPage extends StatefulWidget {
 class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStateMixin {
   double _opacity = 0.0;
   late AnimationController _controller;
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -470,7 +448,6 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
     _controller.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'attack_form.dart'; // Import the AttackForm screen
 import 'package:doctor_app/statistics.dart';
 import 'package:doctor_app/profile_page.dart'; // Import ProfilePage if necessary
-
+import 'package:doctor_app/past_attack_reports.dart';
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -89,7 +89,9 @@ class HomePage extends StatelessWidget {
                   Icons.visibility,
                   Colors.indigo.withOpacity(0.6),
                   Colors.white,
+                  navigateTo: PastAttackReportsPage(doctorId: doctorId), // Pass doctorId here
                 ),
+
                 SizedBox(height: 25),
                 buildActionButton(
                   context,
