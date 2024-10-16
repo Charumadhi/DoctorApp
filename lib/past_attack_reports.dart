@@ -1,6 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class PastAttackReportsPage extends StatefulWidget {
   final String doctorId;
@@ -23,7 +24,7 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
   }
 
   Future<void> fetchPastAttackReports() async {
-    final url = 'https://rabitrack-backend-production.up.railway.app/getCasesByDoctorId:${widget.doctorId}';
+    final url = 'https://rabitrack-backend-production.up.railway.app/getCasesByDoctorId?doctorId=${widget.doctorId}';
 
     try {
       final response = await http.get(Uri.parse(url));

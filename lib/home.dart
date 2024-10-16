@@ -1,14 +1,17 @@
-import 'package:flutter/material.dart';
-import 'attack_form.dart'; // Import the AttackForm screen
-import 'package:doctor_app/statistics.dart';
-import 'package:doctor_app/profile_page.dart'; // Import ProfilePage if necessary
 import 'package:doctor_app/past_attack_reports.dart';
+import 'package:doctor_app/profile_page.dart'; // Import ProfilePage if necessary
+import 'package:doctor_app/statistics.dart';
+import 'package:flutter/material.dart';
+
+import 'attack_form.dart'; // Import the AttackForm screen
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final arguments = ModalRoute.of(context)?.settings.arguments;
-    // If arguments are not null, cast to Map<String, String>
-    final Map<String, dynamic> doctor = arguments as Map<String, dynamic>;
+    // Use a null-aware operator to handle the case where arguments might be null
+    final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    // If arguments are not null, cast to Map<String, dynamic>
+    final Map<String, dynamic> doctor = arguments ?? {};
 
     // Get the doctor name and ID from the arguments
     final String doctorName = doctor['doctorName'] ?? 'Unknown';
