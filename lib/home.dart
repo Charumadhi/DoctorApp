@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'attack_form.dart'; // Import the AttackForm screen
 import 'package:doctor_app/statistics.dart';
 import 'package:doctor_app/profile_page.dart'; // Import ProfilePage if necessary
-
+import 'package:doctor_app/past_attack_reports.dart';
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)?.settings.arguments;
     // If arguments are not null, cast to Map<String, String>
-    final Map<String, dynamic> doctorInfo = arguments as Map<String, dynamic>;
+    final Map<String, dynamic> doctor = arguments as Map<String, dynamic>;
 
     // Get the doctor name and ID from the arguments
-    final String doctorName = doctorInfo['doctorName'] ?? 'Unknown';
-    final String doctorId = doctorInfo['doctorId'] ?? 'Unknown';
-    final String area = doctorInfo['area'] ?? 'Unknown';
-    final String district = doctorInfo['district'] ?? 'Unknown';
+    final String doctorName = doctor['doctorName'] ?? 'Unknown';
+    final String doctorId = doctor['doctorId'] ?? 'Unknown';
+    final String area = doctor['area'] ?? 'Unknown';
+    final String district = doctor['district'] ?? 'Unknown';
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -89,7 +89,9 @@ class HomePage extends StatelessWidget {
                   Icons.visibility,
                   Colors.indigo.withOpacity(0.6),
                   Colors.white,
+                  navigateTo: PastAttackReportsPage(doctorId: doctorId), // Pass doctorId here
                 ),
+
                 SizedBox(height: 25),
                 buildActionButton(
                   context,
@@ -134,7 +136,7 @@ class HomePage extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => StatisticsPage(),
-                settings: RouteSettings(arguments: doctorInfo), // Pass doctorInfo to StatisticsPage
+                settings: RouteSettings(arguments: doctor), // Pass doctorInfo to StatisticsPage
               ),
             );
           } else if (index == 2) {
@@ -142,7 +144,7 @@ class HomePage extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => ProfilePage(),
-                settings: RouteSettings(arguments: doctorInfo), // Pass doctorInfo to ProfilePage
+                settings: RouteSettings(arguments: doctor), // Pass doctorInfo to ProfilePage
               ),
             );
           }
