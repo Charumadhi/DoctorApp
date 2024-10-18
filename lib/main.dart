@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:doctor_app/statistics.dart'; // Import your StatisticsPage
-import 'package:doctor_app/home.dart'; // Import your HomePage
-import 'package:doctor_app/profile_page.dart'; // Import your ProfilePage
+import 'package:RABI_TRACK/statistics.dart'; // Import your StatisticsPage
+import 'package:RABI_TRACK/home.dart'; // Import your HomePage
+import 'package:RABI_TRACK/profile_page.dart'; // Import your ProfilePage
 import 'theme_provider.dart'; // Import your theme provider
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // Add this line
@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildLoginForm(BuildContext context) {
     final TextEditingController idController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
+
 
     return Column(
       children: [
@@ -143,8 +143,12 @@ class _LoginPageState extends State<LoginPage> {
             filled: true,
             fillColor: Colors.white.withOpacity(0.7),
             prefixIcon: const Icon(Icons.medical_services, color: Colors.black),
+
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(
+                color: Colors.white.withOpacity(0.7), // Add a consistent border color
+              ),
             ),
           ),
           style: const TextStyle(color: Colors.black),
@@ -152,22 +156,7 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(height: 20),
 
         // Password Field
-        TextField(
-          controller: passwordController,
-          decoration: InputDecoration(
-            labelText: 'Password',
-            labelStyle: const TextStyle(color: Colors.white),
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.7),
-            prefixIcon: const Icon(Icons.lock, color: Colors.black),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-          ),
-          obscureText: true,
-          style: const TextStyle(color: Colors.black),
-        ),
-        const SizedBox(height: 30),
+
 
         // "Paw Button" (Small, round button with only paw icon)
         Center(
@@ -178,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () async {
                 // Extract doctor ID and password
                 final doctorId = idController.text.trim();
-                final password = passwordController.text.trim();
+
                 print("Id is $doctorId");
 
                 // Log the request URL for debugging

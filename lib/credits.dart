@@ -1,151 +1,195 @@
-import 'package:doctor_app/profile_page.dart';
+import 'package:RABI_TRACK/profile_page.dart';
 import 'package:flutter/material.dart';
-import 'package:doctor_app/statistics.dart';
+import 'package:RABI_TRACK/statistics.dart';
+
 class CreditsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Credits'),
-        backgroundColor: Colors.blue,
+        title: const Text(
+          'Credits',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.indigo[600],  // Elegant deep blue
+        elevation: 0,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0), // Add padding for spacing
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFe0f7fa),  // Light teal to give a soft professional look
+              Color(0xFFffffff),  // White
+            ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader('An Initiative by'),
+              _buildInfoCard(
+                'assets/River_Logo.png',
+                'Department of Veterinary Public Health and Epidemiology, RIVER',
+              ),
+              const SizedBox(height: 24),
+
+              _buildSectionHeader('Under Guidance of'),
+              _buildInfoCardWithSubtitle(
+                'assets/aic_logo.png',
+                'Mr. Vishnu Varadhan',
+                'CEO, ATAL-PECF',
+              ),
+              const SizedBox(height: 24),
+
+              _buildSectionHeader('Development Team'),
+              _buildDevelopmentTeam(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+// Card style for the information sections
+  Widget _buildInfoCard(String logoPath, String text) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // An Initiative by section
-            Text(
-              'An Initiative by',
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold), // Heading style
-            ),
-            SizedBox(height: 10), // Space between heading and content
-            Row(
-              children: [
-                Image.asset(
-                  'assets/River_Logo.png', // Replace with your logo path
-                  width: 50,
-                  height: 50,
-                ),
-                SizedBox(width: 10), // Space between image and text
-                Expanded(
-                  child: Text(
-                    'Department of Veterinary Public Health and Epidemiology, RIVER',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20), // Space between sections
-
-            // Under Guidance of section
-            Text(
-              'Under Guidance of',
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold), // Heading style
-            ),
-            SizedBox(height: 10), // Space between heading and content
-            Row(
-              children: [
-                Image.asset(
-                  'assets/aic_logo.png', // Replace with your logo path
-                  width: 50,
-                  height: 50,
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Mr. Vishnu Varadhan',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'CEO, ATAL-PECF',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20), // Space between sections
-
-            // Development Team section
-            Text(
-              'Development Team',
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold), // Heading style
-            ),
-            SizedBox(height: 10), // Space between heading and content
-            Row(
-              children: [
-                Image.asset(
-                  'assets/ptu-logo.png', // Replace with your logo path
-                  width: 50,
-                  height: 50,
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Shefaoudeen Z',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'Design Club of PTU',
-                        style: TextStyle(fontSize: 14, color: Colors.grey), // Light color
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 10),
-                Image.asset(
-                  'assets/logo.png', // Replace with your logo path
-                  width: 50,
-                  height: 50,
-                ),
-              ],
+            Image.asset(logoPath, width: 60, height: 60),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
             ),
           ],
         ),
       ),
-      // Bottom Navigation Bar
-      // Bottom Navigation Bar
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Statistics',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: 2, // Set the current tab to "Profile"
-        selectedItemColor: Colors.blue,
-    onTap: (index) {
-    if (index == 0) {
-    // Navigate to HomePage
-    Navigator.pushNamed(context, '/home');
-    } else if (index == 1) {
-    // Navigate to HistoryPage
-    Navigator.push(context, MaterialPageRoute(builder: (context) => StatisticsPage()));
+    );
+  }
 
-    }
-    else if (index == 2) {
-      // Navigate to HistoryPage
-      Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage()));
-
-    }
-    },
+// Card with subtitle for guidance section
+  Widget _buildInfoCardWithSubtitle(String logoPath, String name, String position) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(logoPath, width: 60, height: 60),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    position,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+// Development team card design
+  Widget _buildDevelopmentTeam() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            _buildLogo('assets/ptu-logo.png'),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Shefaoudeen Z',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    'Design Club of PTU',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _buildLogo('assets/logo.png'),
+          ],
+        ),
+      ),
+    );
+  }
+
+// Section header with custom style
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.indigo,  // Elegant blue for headers
+        ),
+      ),
+    );
+  }
+
+// Logo styling with soft shadow
+  Widget _buildLogo(String logoPath) {
+    return Image.asset(
+      logoPath,
+      width: 60,
+      height: 60,
+      fit: BoxFit.cover,
+    );
+  }
+
+  // Helper Method to Build Section Headers
+
 }

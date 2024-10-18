@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:doctor_app/credits.dart'; // Replace with correct path if needed
-import 'package:doctor_app/statistics.dart'; // Update with the correct path if necessary
-import 'package:doctor_app/home.dart'; // Ensure HomePage is imported
+import 'package:RABI_TRACK/credits.dart'; // Replace with correct path if needed
+import 'package:RABI_TRACK/statistics.dart'; // Update with the correct path if necessary
+import 'package:RABI_TRACK/home.dart'; // Ensure HomePage is imported
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -23,9 +23,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile Page'),
+        title: const Text('Profile Page',style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold,color: Colors.white),),
         backgroundColor: Colors.blue,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
+
       ),
+
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -90,13 +95,16 @@ class _ProfilePageState extends State<ProfilePage> {
                   leading: Icon(Icons.logout, size: 30),
                   title: Text('Log Out', style: TextStyle(fontSize: 20)),
                   onTap: () {
+                    // Clear session data (if applicable)
+                    // Example: await clearUserSession();
+
                     // Log out logic here
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Logged out')),
                     );
 
                     // Navigate back to the login page
-                    Navigator.pushReplacementNamed(context, '/login'); // Ensure '/login' route is defined in your app
+                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false); // Ensure '/login' route is defined
                   },
                 ),
               ),
@@ -125,7 +133,7 @@ class _ProfilePageState extends State<ProfilePage> {
         onTap: (index) {
           if (index == 0) {
             // Navigate to HomePage and pass doctorInfo
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => HomePage(),
@@ -134,7 +142,7 @@ class _ProfilePageState extends State<ProfilePage> {
             );
           } else if (index == 1) {
             // Navigate to StatisticsPage and pass doctorInfo
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => StatisticsPage(),

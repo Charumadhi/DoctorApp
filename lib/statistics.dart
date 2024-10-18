@@ -1,8 +1,8 @@
 import 'dart:convert'; // For decoding JSON response
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Import http package for API calls
-import 'package:doctor_app/profile_page.dart';
-import 'package:doctor_app/home.dart';
+import 'package:RABI_TRACK/profile_page.dart';
+import 'package:RABI_TRACK/home.dart';
 
 class StatisticsPage extends StatefulWidget {
   @override
@@ -67,8 +67,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistics'),
+        title: const Text('Statistics',style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold,color: Colors.white),),
         backgroundColor: Colors.blue,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0), // Padding for the main content

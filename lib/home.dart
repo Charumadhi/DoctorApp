@@ -1,13 +1,12 @@
-import 'package:doctor_app/past_attack_reports.dart';
-import 'package:doctor_app/profile_page.dart'; // Import ProfilePage if necessary
-import 'package:doctor_app/statistics.dart';
+import 'package:RABI_TRACK/past_attack_reports.dart';
+import 'package:RABI_TRACK/profile_page.dart'; // Import ProfilePage if necessary
+import 'package:RABI_TRACK/statistics.dart';
 import 'package:flutter/material.dart';
-
 import 'attack_form.dart'; // Import the AttackForm screen
+
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Use a null-aware operator to handle the case where arguments might be null
     final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     // If arguments are not null, cast to Map<String, dynamic>
@@ -28,8 +27,12 @@ class HomePage extends StatelessWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
       ),
       body: Container(
+        // Ensure the Container takes up the full screen
+        width: double.infinity,
+        height: double.infinity, // Use full height
         decoration: BoxDecoration(
           image: DecorationImage(
             image: NetworkImage('https://img.freepik.com/free-photo/decorative-background-with-smoke_23-2147611841.jpg'),
@@ -65,7 +68,7 @@ class HomePage extends StatelessWidget {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Dr. $doctorName (ID: $doctorId)',
+                  'Dr. $doctorName ',
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -93,8 +96,8 @@ class HomePage extends StatelessWidget {
                   Colors.indigo.withOpacity(0.6),
                   Colors.white,
                   navigateTo: PastAttackReportsPage(doctorId: doctorId), // Pass doctorId here
+                  height: 100, // Set a smaller height for the button
                 ),
-
                 SizedBox(height: 25),
                 buildActionButton(
                   context,
@@ -108,6 +111,7 @@ class HomePage extends StatelessWidget {
                     area: area,
                     district: district,
                   ),
+                  height: 100, // Set a smaller height for the button
                 ),
               ],
             ),
@@ -156,7 +160,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget buildActionButton(BuildContext context, String text, IconData icon, Color bgColor, Color textColor, {Widget? navigateTo}) {
+  Widget buildActionButton(BuildContext context, String text, IconData icon, Color bgColor, Color textColor, {Widget? navigateTo, double height = 160}) {
     return GestureDetector(
       onTap: () {
         if (navigateTo != null) {
@@ -168,8 +172,8 @@ class HomePage extends StatelessWidget {
       },
       child: Container(
         width: double.infinity,
-        height: 160,
-        padding: const EdgeInsets.all(24.0),
+        height: height, // Set the height for the button here
+        padding: const EdgeInsets.all(12.0), // Adjust padding if needed
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(12),
@@ -187,15 +191,15 @@ class HomePage extends StatelessWidget {
             Icon(
               icon,
               color: textColor,
-              size: 40,
+              size: 30, // Adjust icon size if needed
             ),
-            SizedBox(width: 15),
+            SizedBox(width: 10),
             Expanded(
               child: Text(
                 text,
                 style: TextStyle(
                   color: textColor,
-                  fontSize: 26,
+                  fontSize: 20, // Adjust font size if needed
                   fontWeight: FontWeight.w600,
                 ),
               ),

@@ -1,4 +1,4 @@
-name: doctor_app
+name: RABI_TRACK
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -27,7 +27,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/Rabitrackrivertr.png"
+  image_path: "assets/Rabitrackrivertr-modified.png"
 
 flutter:
   uses-material-design: true
@@ -44,6 +44,7 @@ flutter:
     - assets/doctor.jpg
     - assets/doctorbg.png
     - assets/Rabitrackrivertr.png
+    - assets/Rabitrackrivertr-modified.png
 
   # You can add custom fonts to your application here
   fonts:
