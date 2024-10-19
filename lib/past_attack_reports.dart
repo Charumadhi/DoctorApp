@@ -87,7 +87,7 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
                 : hasError
                 ? Center(
               child: Text(
-                'Failed to load reports',
+                'No past reports found',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.redAccent,
@@ -100,13 +100,19 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
               itemBuilder: (context, index) {
                 final report = attackReports[index];
                 return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    // Navigate to CaseDetailsPage and wait for a result
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => CaseDetailsPage(caseId: report['case_id']),
                       ),
                     );
+
+                    // If a case was deleted, refresh the attack reports
+                    if (result == true) {
+                      fetchPastAttackReports();
+                    }
                   },
                   child: Container(
                     margin: EdgeInsets.only(bottom: 16),

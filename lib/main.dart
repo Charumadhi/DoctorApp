@@ -223,6 +223,9 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         );
+                      } else if (data.containsKey('error') && data['error'] == 'Doctor not found') {
+                        // Show a pop-up if the doctor ID does not exist
+                        _showErrorDialog(context, "No such doctor exists");
                       } else {
                         _showErrorDialog(context, "Invalid credentials");
                       }
@@ -231,6 +234,9 @@ class _LoginPageState extends State<LoginPage> {
                       _showErrorDialog(context, "Unexpected server response");
                       print("JSON parsing error: $jsonError");
                     }
+                  } else if (response.statusCode == 401) {
+                    // If the status code is 401, show a pop-up indicating no such doctor exists
+                    _showErrorDialog(context, "No such doctor exists! Please enter a valid id");
                   } else {
                     print("Error: ${response.reasonPhrase}"); // Log reason phrase
                   }
@@ -254,22 +260,25 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // Function to show error dialog
   void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Error'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            child: Text('Okay'),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-          ),
-        ],
-      ),
-    );
+    if (context != null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _buildRegistrationForm(BuildContext context) {
@@ -428,7 +437,7 @@ class _LoginPageState extends State<LoginPage> {
                 // Navigate to the home page and pass arguments
                 Navigator.pushNamed(
                   context,
-                  '/home',
+                  '/login',
                   arguments: arguments,
                 );
               }else {

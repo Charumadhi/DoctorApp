@@ -19,7 +19,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
   String? _species;
   String? _breed;
   int? _age;
-  bool _vaccinationStatus = false; // tinyint in the backend (true/false)
+  bool? _vaccinationStatus = null; // tinyint in the backend (true/false)
   String? _animalCondition;
   String? _gender;
   //int? _pincode;
@@ -249,11 +249,38 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
               // ),
               const SizedBox(height: 20),
 
-              _buildDropdownField('Vaccination Status', _vaccinationStatus ? 'Vaccinated' : 'Not Vaccinated', ['Vaccinated', 'Not Vaccinated'], (value) {
-                setState(() {
-                  _vaccinationStatus = value == 'Vaccinated';
-                });
-              }),
+              DropdownButtonFormField<String>(
+                value: _vaccinationStatus == null ? null : (_vaccinationStatus == true ? 'Vaccinated' : 'Not Vaccinated'),  // Map boolean to string or null
+                items: [
+                  // DropdownMenuItem<String>(
+                  //   value: null,  // Placeholder value
+                  //   child: Text('Select Vaccination Status'),  // Placeholder text
+                  // ),
+                  DropdownMenuItem<String>(
+                    value: 'Vaccinated',
+                    child: Text('Vaccinated'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Not Vaccinated',
+                    child: Text('Not Vaccinated'),
+                  ),
+                ],
+                onChanged: (String? value) {
+                  setState(() {
+                    if (value == null) {
+                      _vaccinationStatus = null;  // Reset to null if placeholder is selected
+                    } else if (value == 'Vaccinated') {
+                      _vaccinationStatus = true;  // Set boolean based on string
+                    } else if (value == 'Not Vaccinated') {
+                      _vaccinationStatus = false;
+                    }
+                  });
+                },
+                decoration: InputDecoration(
+                  labelText: 'Vaccination Status',
+                  border: OutlineInputBorder(),
+                ),
+              ),
               const SizedBox(height: 20),
 
               DropdownButtonFormField<String>(

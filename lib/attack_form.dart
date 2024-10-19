@@ -30,7 +30,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
   String? _gender; // char in the backend
   String? _attackSite;
   int? _woundCategory; // smallint in the backend
-  bool _vaccinationStatus = false; // tinyint in the backend (true/false)
+  bool? _vaccinationStatus = null;  // No selection by default (nullable)
   int? _numberOfDoses; // smallint in the backend
   int? _pincode; // int in the backend
 
@@ -63,7 +63,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      lastDate: DateTime.now(),
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -272,23 +272,60 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 20),
-                _buildDropdownField('Vaccination Status', _vaccinationStatus ? 'Vaccinated' : 'Not Vaccinated', ['Vaccinated', 'Not Vaccinated'], (value) {
-                  setState(() {
-                    _vaccinationStatus = value == 'Vaccinated';
-                  });
-                }),
-                const SizedBox(height: 20),
-                _buildTextField(
-                  'How many doses of vaccination?',
-                  null,
-                  'Enter number of doses',
-                      (value) {
+                DropdownButtonFormField<String>(
+                  value: _vaccinationStatus == null ? null : (_vaccinationStatus == true ? 'Vaccinated' : 'Not Vaccinated'),  // Map boolean to string or null
+                  items: [
+                    // DropdownMenuItem<String>(
+                    //   value: null,  // Placeholder value
+                    //   child: Text('Select Vaccination Status'),  // Placeholder text
+                    // ),
+                    DropdownMenuItem<String>(
+                      value: 'Vaccinated',
+                      child: Text('Vaccinated'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Not Vaccinated',
+                      child: Text('Not Vaccinated'),
+                    ),
+                  ],
+                  onChanged: (String? value) {
                     setState(() {
-                      _numberOfDoses = int.tryParse(value);
+                      if (value == null) {
+                        _vaccinationStatus = null;  // Reset to null if placeholder is selected
+                      } else if (value == 'Vaccinated') {
+                        _vaccinationStatus = true;  // Set boolean based on string
+                      } else if (value == 'Not Vaccinated') {
+                        _vaccinationStatus = false;
+                      }
                     });
                   },
-                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Vaccination Status',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
+                const SizedBox(height: 20),
+                // Conditionally show the text field if the vaccination status is true
+                if (_vaccinationStatus == true)
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'How many doses of vaccination?',
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter number of doses',
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      setState(() {
+                        _numberOfDoses = int.tryParse(value);
+                      });
+                    },
+                    validator: (value) {
+                      if (_vaccinationStatus == true && (value == null || value.isEmpty)) {
+                        return 'Please enter the number of doses';
+                      }
+                      return null;
+                    },
+                  ),
                 const SizedBox(height: 20),
                 _buildTextField(
                   'Enter your pincode',
