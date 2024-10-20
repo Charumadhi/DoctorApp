@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Import http package for API calls
 
 class StatisticsPage extends StatefulWidget {
-
   final String jwtToken;
 
   StatisticsPage({required this.jwtToken}) {
@@ -19,28 +18,20 @@ class StatisticsPage extends StatefulWidget {
 }
 
 class _StatisticsPageState extends State<StatisticsPage> {
-  // Store the data from the API
   Map<String, dynamic> districtCases = {};
+  String? errorMessage;
 
-  // Variable to hold error messages
-  String? errorMessage; // Nullable to indicate no error initially
-
-  // Function to fetch case count data from the API
   Future<void> fetchCaseData() async {
     final url = "https://rabitrack-backend-production.up.railway.app/getCaseCount";
     try {
-      // Remove any leading or trailing whitespace from the token
       final formattedToken = widget.jwtToken.trim();
 
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          'Cookie': 'jwttoken=${formattedToken}', // Include the jwtToken in the headers
+          'Cookie': 'jwttoken=${formattedToken}',
         },
       );
-
-      print('Response status: ${response.statusCode}'); // Log status code
-      print('Response body: ${response.body}'); // Log response body
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -48,7 +39,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
         if (data is List) {
           setState(() {
             districtCases = {
-              for (var item in data) item['district']: item['count'] // 'count' holds case data
+              for (var item in data) item['district']: item['count']
             };
           });
         } else {
@@ -58,9 +49,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error occurred: $e'); // Log error
       setState(() {
-        errorMessage = 'Failed to load data'; // Set error message
+        errorMessage = 'Failed to load data';
       });
     }
   }
@@ -68,65 +58,56 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   void initState() {
     super.initState();
-    fetchCaseData(); // Fetch data when screen is initialized
+    fetchCaseData();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Retrieve the doctor information passed as arguments
     final arguments = ModalRoute.of(context)?.settings.arguments;
-    final Map<String, dynamic> doctorInfo = arguments as Map<String, dynamic>;
+    final Map<String, dynamic> doctor = (arguments as Map<String, dynamic>?)?['doctor'] ?? {};
 
-    // Get the doctor name, ID, area, and district from the arguments
-    final String doctorName = doctorInfo['doctorName'] ?? 'Unknown';
-    final String doctorId = doctorInfo['doctorId'] ?? 'Unknown';
-    final String area = doctorInfo['area'] ?? 'Unknown';
-    final String district = doctorInfo['district'] ?? 'Unknown';
-
-
+    final String doctorName = doctor['doctorName'] ?? 'Unknown';
+    final String doctorId = doctor['doctorId'] ?? 'Unknown';
+    final String area = doctor['area'] ?? 'Unknown';
+    final String district = doctor['district'] ?? 'Unknown';
+    print('Doctor ID: $doctorId');
+    print('Doctor Name: $doctorName');
+    print('Area: $area');
+    print('District: $district');
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistics',style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold,color: Colors.white),),
+        title: const Text('Statistics', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0), // Padding for the main content
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Centered heading
             Text(
               'ANALYSIS',
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold), // Heading style
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 20), // Space between heading and logo
-
-            // Logo
+            SizedBox(height: 20),
             Image.asset(
               'assets/google_map.png',
-              width: 400, // Replace with your logo path
-              height: 200, // Adjust the size of the logo
-              fit: BoxFit.cover, // Cover the space while maintaining aspect ratio
+              width: 400,
+              height: 200,
+              fit: BoxFit.cover,
             ),
-            SizedBox(height: 20), // Space between logo and districts
-
-            // Error message display
-            if (errorMessage != null) // Check if there's an error message
+            SizedBox(height: 20),
+            if (errorMessage != null)
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   errorMessage!,
-                  style: TextStyle(color: Colors.red, fontSize: 16), // Error message style
+                  style: TextStyle(color: Colors.red, fontSize: 16),
                 ),
               ),
-
-            // Districts List
             districtCases.isEmpty
-                ? CircularProgressIndicator() // Show loader while data is being fetched
+                ? CircularProgressIndicator()
                 : Expanded(
               child: ListView(
                 children: districtCases.entries.map((entry) {
@@ -152,25 +133,33 @@ class _StatisticsPageState extends State<StatisticsPage> {
             label: 'Profile',
           ),
         ],
-        currentIndex: 1, // Set the current index to the Statistics page
+        currentIndex: 1,
         selectedItemColor: Colors.blue,
         onTap: (index) {
           if (index == 0) {
-            // Navigate to HomePage and pass doctorInfo
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => HomePage(),
-                settings: RouteSettings(arguments: doctorInfo),
+                settings: RouteSettings(arguments: {
+                  'doctorId': doctorId,
+                  'doctorName': doctorName,
+                  'area': area,
+                  'district': district,
+                  'jwtToken': widget.jwtToken,
+                }),
               ),
             );
           } else if (index == 2) {
-            // Navigate to ProfilePage and pass doctorInfo
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => ProfilePage(jwtToken: widget.jwtToken),
-                settings: RouteSettings(arguments: doctorInfo),
+                settings: RouteSettings(arguments: {
+                  'doctor': doctor,
+
+
+                }),
               ),
             );
           }
@@ -179,34 +168,32 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
-  // Method to build each district card
   Widget buildDistrictCard(String districtName, String cases) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 10), // Space between cards
+      margin: const EdgeInsets.symmetric(vertical: 10),
       child: Padding(
-        padding: const EdgeInsets.all(16.0), // Padding inside the card
+        padding: const EdgeInsets.all(16.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Space between elements
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               districtName,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            // Circle with case data
             Column(
               children: [
                 CircleAvatar(
-                  radius: 30, // Circle size
-                  backgroundColor: Colors.blue, // Circle background color
+                  radius: 30,
+                  backgroundColor: Colors.blue,
                   child: Text(
                     cases,
-                    style: TextStyle(color: Colors.white, fontSize: 16), // Case count style
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
-                SizedBox(height: 5), // Space between circle and label
+                SizedBox(height: 5),
                 Text(
                   'No. of cases',
-                  style: TextStyle(color: Colors.red), // Label style
+                  style: TextStyle(color: Colors.red),
                 ),
               ],
             ),

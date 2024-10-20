@@ -246,13 +246,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   final prefs = await SharedPreferences.getInstance();
                   final token = prefs.getString('jwttoken');
 
-                  // Check if the doctorId or dob is empty
                   if (doctorId.isEmpty || dob.isEmpty) {
                     setState(() {
                       isLoading = false; // Reset loading state
                     });
                     _showErrorDialog(context, "Please enter all the fields");
-                    return; // Exit early if doctorId or dob is empty
+                    return;
                   }
 
                   final doctorIdPattern = RegExp(r'^PVC\d{4}$');
@@ -282,72 +281,47 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       body: body,
                     );
 
-                    print("Response status: ${response.statusCode}");
-                    print("Response body: ${response.body}");
-                    print("Token used: ${response.headers['set-cookie']?.split('=')[1]?.split(';')[0] ?? ''}");
-
-
                     if (response.statusCode == 200) {
-                      // Handle successful login
-                      try {
-                        final data = json.decode(response.body);
-                        if (data['isAuth'] == true) {
-                          // Store the JWT token in SharedPreferences
-                          String token = response.headers['set-cookie']?.split('=')[1]?.split(';')[0] ?? '';
-                          await prefs.setString('jwttoken', token); // Store only the token part
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => HomePage(),
-                              settings: RouteSettings(
-                                arguments: {
-                                  'doctorName': data['doctor_name'],
-                                  'doctorId': data['doctor_id'],
-                                  'area': data['area'],
-                                  'district': data['district'],
-                                  'jwtToken': token ?? '', // Ensure it's correctly fetched
-                                },
-                              ),
+                      final data = json.decode(response.body);
+                      if (data['isAuth'] == true) {
+                        // Extract and trim the JWT token
+                        String token = response.headers['set-cookie']?.split('=')[1]?.split(';')[0].trim() ?? '';
+                        await prefs.setString('jwttoken', token); // Store trimmed token
+
+                        // Navigate to HomePage with the JWT token
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => HomePage(),
+                            settings: RouteSettings(
+                              arguments: {
+                                'doctorName': data['doctor_name'],
+                                'doctorId': data['doctor_id'],
+                                'area': data['area'],
+                                'district': data['district'],
+                                'jwtToken': token, // Pass the trimmed token
+                              },
                             ),
-                          );
-                        }
-                        else if (data.containsKey('error') && data['error'] == 'Doctor not found') {
-                          // Show a pop-up if the doctor ID does not exist
-                          _showErrorDialog(context, "No such doctor exists");
-                        } else {
-                          // Handle invalid credentials
-                          _showErrorDialog(context, "Invalid credentials");
-                        }
-                      } catch (jsonError) {
-                        // Handle JSON decoding error
-                        _showErrorDialog(context, "Unexpected server response");
-                        print("JSON parsing error: $jsonError");
+                          ),
+                        );
+                      } else if (data['error'] == 'Doctor not found') {
+                        _showErrorDialog(context, "No such doctor exists");
+                      } else {
+                        _showErrorDialog(context, "Invalid credentials");
                       }
                     } else if (response.statusCode == 401) {
-                      // Handle unauthorized access
-                      final data = json.decode(response.body);
-                      if (data.containsKey('isAuth') && data['isAuth'] == false) {
-                        // If the date of birth is incorrect, display a message
-                        _showErrorDialog(context, "Incorrect date of birth. Please try again.");
-                      } else {
-                        // Fallback for other 401 errors
-                        _showErrorDialog(context, "Unauthorized access.");
-                      }
+                      _showErrorDialog(context, "Incorrect date of birth. Please try again.");
                     } else {
-                      // Handle other status codes
                       _showErrorDialog(context, "An error occurred. Please try again.");
-                      print("Error: ${response.reasonPhrase}"); // Log reason phrase
                     }
                   } catch (error) {
-                    // General error handling for network or other issues
                     _showErrorDialog(context, "An error occurred");
-                    print("Error logging in: $error");
                   } finally {
-                    // Reset loading state
                     setState(() {
                       isLoading = false;
                     });
                   }
                 },
+
 
 
 

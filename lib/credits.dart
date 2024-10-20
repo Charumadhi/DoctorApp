@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 class CreditsPage extends StatelessWidget {
+  final String jwtToken;
+
+  CreditsPage({required this.jwtToken});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,6 +21,13 @@ class CreditsPage extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(
           color: Colors.white,
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // Pass the JWT token back to ProfilePage when back button is pressed
+            Navigator.pop(context, jwtToken);
+          },
         ),
       ),
       body: Container(
@@ -41,7 +52,6 @@ class CreditsPage extends StatelessWidget {
                 'Department of Veterinary Public Health and Epidemiology, RIVER',
               ),
               const SizedBox(height: 24),
-
               _buildSectionHeader('Under Guidance of'),
               _buildInfoCardWithSubtitle(
                 'assets/aic_logo.png',
@@ -49,7 +59,6 @@ class CreditsPage extends StatelessWidget {
                 'CEO, ATAL-PECF',
               ),
               const SizedBox(height: 24),
-
               _buildSectionHeader('Development Team'),
               _buildDevelopmentTeam(),
             ],

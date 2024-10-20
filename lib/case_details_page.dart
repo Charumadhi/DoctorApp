@@ -31,7 +31,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Bearer ${widget.jwtToken}', // Include JWT token here
+          'Cookie': 'jwttoken=${widget.jwtToken}', // Include JWT token here
         },
       );
 
@@ -73,7 +73,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
       final response = await http.delete(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Bearer ${widget.jwtToken}', // Include JWT token here
+          'Cookie': 'jwttoken=${widget.jwtToken}', // Include JWT token here
         },
       );
 

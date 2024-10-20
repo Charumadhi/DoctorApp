@@ -1,11 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:RABI_TRACK/credits.dart'; // Replace with correct path if needed
 import 'package:RABI_TRACK/home.dart'; // Ensure HomePage is imported
 import 'package:RABI_TRACK/statistics.dart'; // Update with the correct path if necessary
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
-
   final String jwtToken;
 
   ProfilePage({required this.jwtToken});
@@ -15,28 +14,34 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  late String _jwtToken;
+
+  @override
+  void initState() {
+    super.initState();
+    _jwtToken = widget.jwtToken; // Initialize the jwtToken
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Retrieve the doctor information passed as arguments
     final arguments = ModalRoute.of(context)?.settings.arguments;
-    final Map<String, dynamic> doctorInfo = arguments as Map<String, dynamic>;
+    final Map<String, dynamic> doctor = (arguments as Map<String, dynamic>?)?['doctor'] ?? {};
 
-    // Get the doctor name and ID from the arguments
-    final String doctorName = doctorInfo['doctorName'] ?? 'Unknown';
-    final String doctorId = doctorInfo['doctorId'] ?? 'Unknown';
-    final String area = doctorInfo['area'] ?? 'Unknown';
-    final String district = doctorInfo['district'] ?? 'Unknown';
-    //final String jwtToken = doctorInfo['jwtToken'] ?? 'Unknown';
+    final String doctorName = doctor['doctorName'] ?? 'Unknown';
+    final String doctorId = doctor['doctorId'] ?? 'Unknown';
+    final String area = doctor['area'] ?? 'Unknown';
+    final String district = doctor['district'] ?? 'Unknown';
+    print('Doctor ID: $doctorId');
+    print('Doctor Name: $doctorName');
+    print('Area: $area');
+    print('District: $district');
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile Page',style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold,color: Colors.white),),
+        title: const Text('Profile Page', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
-
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -50,70 +55,56 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Avatar
               CircleAvatar(
                 radius: 60,
-                backgroundImage: AssetImage('assets/doctor.jpg'), // Replace with your avatar image
+                backgroundImage: AssetImage('assets/doctor.jpg'),
               ),
               SizedBox(height: 20),
-
-              // Display the doctor’s name dynamically
               Text(
                 'Dr. $doctorName',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
-              Text(
-                'Doctor ID: $doctorId',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-              ),
+              Text('Doctor ID: $doctorId', style: TextStyle(fontSize: 16)),
               SizedBox(height: 10),
-              Text(
-                'Area: $area',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-              ),
+              Text('Area: $area', style: TextStyle(fontSize: 16)),
               SizedBox(height: 10),
-              Text(
-                'District: $district',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-              ),
-              SizedBox(height: 30), // Spacing from top
-
-              // Credits Option
+              Text('District: $district', style: TextStyle(fontSize: 16)),
+              SizedBox(height: 30),
               Card(
                 margin: EdgeInsets.symmetric(vertical: 10),
                 child: ListTile(
                   leading: Icon(Icons.info, size: 30),
                   title: Text('Credits', style: TextStyle(fontSize: 20)),
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    // Navigate to CreditsPage and wait for the returned jwtToken
+                    final returnedJwtToken = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => CreditsPage()),
+                      MaterialPageRoute(builder: (context) => CreditsPage(jwtToken: _jwtToken)),
                     );
+
+                    if (returnedJwtToken != null) {
+                      setState(() {
+                        _jwtToken = returnedJwtToken; // Update jwtToken when returned
+                      });
+                    }
                   },
                 ),
               ),
-
-              // Logout Option
               Card(
                 margin: EdgeInsets.symmetric(vertical: 10),
                 child: ListTile(
                   leading: Icon(Icons.logout, size: 30),
                   title: Text('Log Out', style: TextStyle(fontSize: 20)),
                   onTap: () async {
-                    // Clear session data (if applicable)
                     final prefs = await SharedPreferences.getInstance();
-
-                    // Remove the JWT token
-                    await prefs.remove('jwtToken'); // Make sure 'jwtToken' is the key you used to store the token
-
-                    // Log out logic here
+                    await prefs.remove('jwtToken');
+                    final token = prefs.getString('jwtToken');
+                    print('Token after removal: $token');
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Logged out')),
                     );
-
-                    // Navigate back to the login page
-                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false); // Ensure '/login' route is defined
+                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
                   },
                 ),
               ),
@@ -121,45 +112,42 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ),
-      // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Statistics',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Statistics'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
-        currentIndex: 2, // Set the current tab to "Profile"
+        currentIndex: 2,
         selectedItemColor: Colors.blue,
         onTap: (index) {
           if (index == 0) {
-            // Navigate to HomePage and pass doctorInfo
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => HomePage(),
-                settings: RouteSettings(arguments: doctorInfo),
+                settings: RouteSettings(arguments: {
+                  'doctorId': doctorId,
+                  'doctorName': doctorName,
+                  'area': area,
+                  'district': district,
+                  'jwtToken': widget.jwtToken,
+                }),
               ),
             );
           } else if (index == 1) {
-            // Navigate to StatisticsPage and pass doctorInfo
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => StatisticsPage(jwtToken: widget.jwtToken),
-                settings: RouteSettings(arguments: doctorInfo),
+                builder: (context) => StatisticsPage(jwtToken: _jwtToken),
+                settings: RouteSettings(arguments: {
+                  'doctor': doctor,
+
+
+                }),
               ),
             );
           }
-          // No action for Profile since we are already on this page
         },
       ),
     );

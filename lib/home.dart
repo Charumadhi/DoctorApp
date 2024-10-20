@@ -19,8 +19,9 @@ class HomePage extends StatelessWidget {
     final String doctorId = doctor['doctorId'] ?? 'Unknown';
     final String area = doctor['area'] ?? 'Unknown';
     final String district = doctor['district'] ?? 'Unknown';
-    final String jwtToken = doctor['jwtToken'];
-
+    final String jwtToken = doctor['jwtToken']?? '';
+    print('Doctor ID: $doctorId, Name: $doctorName, Area: $area, District: $district, JWT: $jwtToken');
+    print('Sending Doctor Info to StatisticsPage: $doctor');
     print("Token got from main file: $jwtToken");
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -152,7 +153,9 @@ class HomePage extends StatelessWidget {
                 builder: (context) => StatisticsPage(jwtToken: jwtToken),
                 settings: RouteSettings(arguments: {
                   'doctor': doctor,
-                  }),
+
+
+                }),
               ),
             );
           } else if (index == 2) {

@@ -75,6 +75,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
           doctor: widget.doctor,
           victim: widget.victim,
           attacker: attacker,
+          jwtToken: widget.jwtToken,
         )),
       );
     }
@@ -352,8 +353,8 @@ class FirstQuestionPage extends StatefulWidget {
   final Map<String, dynamic> doctor;
   final Map<String, dynamic> victim;
   final Map<String, dynamic> attacker;
-
-  FirstQuestionPage({required this.doctor, required this.victim, required this.attacker});
+  final String jwtToken;
+  FirstQuestionPage({required this.doctor, required this.victim, required this.attacker,required this.jwtToken});
 
   @override
   _FirstQuestionPageState createState() => _FirstQuestionPageState();
@@ -420,10 +421,11 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
 
 // Sending the modified data
     try {
+      final formattedToken = widget.jwtToken.trim();
       final url = Uri.parse('https://rabitrack-backend-production.up.railway.app/addNewCase');
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json','Cookie': 'jwttoken=${formattedToken}',},
         body: jsonEncode(dataToSend),
       );
       print(jsonEncode(dataToSend));
@@ -432,7 +434,7 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => SuccessPage(doctor: widget.doctor),
+            builder: (context) => SuccessPage(doctor: widget.doctor,jwtToken: widget.jwtToken),
           ),
         );
         print(response.body);
@@ -541,7 +543,8 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
 
 class SuccessPage extends StatefulWidget {
   final Map<String, dynamic> doctor;
-  SuccessPage({required this.doctor});
+  final String jwtToken;
+  SuccessPage({required this.doctor,required this.jwtToken,});
 
   @override
   _SuccessPageState createState() => _SuccessPageState();
@@ -629,6 +632,7 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
                           'doctorId': widget.doctor['doctorId'],
                           'area': widget.doctor['area'] ?? 'Unknown', // Assuming area and district are available
                           'district': widget.doctor['district'] ?? 'Unknown',
+                          'jwtToken': widget.jwtToken,
                         },
                       ),
                     ),
