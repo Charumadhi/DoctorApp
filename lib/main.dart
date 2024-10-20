@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:RABI_TRACK/statistics.dart'; // Import your StatisticsPage
+import 'dart:convert';
+
 import 'package:RABI_TRACK/home.dart'; // Import your HomePage
 import 'package:RABI_TRACK/profile_page.dart'; // Import your ProfilePage
+import 'package:RABI_TRACK/statistics.dart'; // Import your StatisticsPage
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -28,9 +29,15 @@ class RabitrackRiverApp extends StatelessWidget {
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginPage(),
-        '/statistics': (context) => StatisticsPage(),
         '/home': (context) => HomePage(),
-        '/profile': (context) => ProfilePage(),
+        '/statistics': (context) {
+          final String jwtToken = ModalRoute.of(context)!.settings.arguments as String;
+          return StatisticsPage(jwtToken: jwtToken);
+        },
+        '/profile': (context) {
+          final String jwtToken = ModalRoute.of(context)!.settings.arguments as String;
+          return ProfilePage(jwtToken: jwtToken);
+        },
         '/register': (context) => const RegistrationPage(),
       },
     );
@@ -277,6 +284,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
                     print("Response status: ${response.statusCode}");
                     print("Response body: ${response.body}");
+                    print("Token used: ${response.headers['set-cookie']?.split('=')[1]?.split(';')[0] ?? ''}");
+
 
                     if (response.statusCode == 200) {
                       // Handle successful login
@@ -284,7 +293,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         final data = json.decode(response.body);
                         if (data['isAuth'] == true) {
                           // Store the JWT token in SharedPreferences
-                          await prefs.setString('jwttoken', response.headers['set-cookie'] ?? '');
+                          String token = response.headers['set-cookie']?.split('=')[1]?.split(';')[0] ?? '';
+                          await prefs.setString('jwttoken', token); // Store only the token part
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
                               builder: (context) => HomePage(),
@@ -294,7 +304,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                   'doctorId': data['doctor_id'],
                                   'area': data['area'],
                                   'district': data['district'],
-                                  'jwtToken': response.headers['set-cookie'] ?? '',
+                                  'jwtToken': token ?? '', // Ensure it's correctly fetched
                                 },
                               ),
                             ),

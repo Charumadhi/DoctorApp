@@ -1,13 +1,17 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 import 'case_details_page.dart';
 
 class PastAttackReportsPage extends StatefulWidget {
   final String doctorId;
   final String jwtToken;
 
+
   const PastAttackReportsPage({Key? key, required this.doctorId,required this.jwtToken}) : super(key: key);
+
 
   @override
   _PastAttackReportsPageState createState() => _PastAttackReportsPageState();
@@ -26,11 +30,17 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
 
   Future<void> fetchPastAttackReports() async {
     final url = 'https://rabitrack-backend-production.up.railway.app/getCasesByDoctorId/${widget.doctorId}';
-
+    print('Fetching reports for Doctor ID: ${widget.doctorId} with JWT: ${widget.jwtToken}');
     try {
-      final response = await http.get(Uri.parse(url),headers: {
-        'Cookie': 'jwttoken=${widget.jwtToken}', // Include the jwtToken in the headers
-      },);
+      // Remove any leading or trailing whitespace from the token
+      final formattedToken = widget.jwtToken.trim();
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Cookie': 'jwttoken=${formattedToken}', // Include the jwtToken in the headers
+        },
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> decodedResponse = json.decode(response.body);
@@ -46,8 +56,7 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
           errorMessage = 'No past reports found'; // Update error message
           isLoading = false;
         });
-      }
-      else if (response.statusCode == 401) {
+      } else if (response.statusCode == 401) {
         // Handle unauthorized access
         setState(() {
           errorMessage = "User doesn't have permission";
@@ -72,6 +81,9 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Print the JWT token here
+    print("Token received in PastAttackReportsPage: ${widget.jwtToken}");
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue.shade600,
@@ -138,7 +150,10 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CaseDetailsPage(caseId: report['case_id']),
+                        builder: (context) => CaseDetailsPage(
+                          caseId: report['case_id'],
+                          jwtToken: widget.jwtToken, // Pass the jwtToken here
+                        ),
                       ),
                     );
 

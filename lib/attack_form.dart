@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'attacker_details.dart';
 import 'profile_page.dart';
 
@@ -8,12 +9,14 @@ class AttackFormPage extends StatefulWidget {
   final String doctorName;
   final String area;
   final String district;
+  final String jwtToken;
 
   AttackFormPage({
     required this.doctorId,
     required this.doctorName,
     required this.area,
     required this.district,
+    required this.jwtToken,
   });
 
   @override
@@ -53,7 +56,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
     if (index == 2) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ProfilePage()),
+        MaterialPageRoute(builder: (context) => ProfilePage(jwtToken: widget.jwtToken)),
       );
     }
   }
@@ -112,6 +115,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
           builder: (context) => AttackerDetailsPage(
             doctor: doctor,
             victim: victim,
+            jwtToken: widget.jwtToken,
           ),
         ),
       );

@@ -1,20 +1,35 @@
-import 'package:flutter/material.dart';
-import 'home.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';  // For encoding JSON objects
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import 'home.dart';
 
 class AttackerDetailsPage extends StatefulWidget {
 
   final Map<String, dynamic> doctor;
   final Map<String, dynamic> victim;
+  final String jwtToken;
 
-  AttackerDetailsPage({required this.doctor, required this.victim});
+  const AttackerDetailsPage({
+    Key? key,
+    required this.doctor,
+    required this.victim,
+    required this.jwtToken,
+  }) : super(key: key);
 
   @override
   _AttackerDetailsPageState createState() => _AttackerDetailsPageState();
 }
 
 class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
+
+  @override
+  void initState() {
+    super.initState();
+    print('JWT Token from attack from: ${widget.jwtToken}'); // Print the token here
+  }
+
   final _formKey = GlobalKey<FormState>();
   String? _species;
   String? _breed;

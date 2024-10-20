@@ -1,10 +1,19 @@
 import 'dart:convert'; // For decoding JSON response
+
+import 'package:RABI_TRACK/home.dart';
+import 'package:RABI_TRACK/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Import http package for API calls
-import 'package:RABI_TRACK/profile_page.dart';
-import 'package:RABI_TRACK/home.dart';
 
 class StatisticsPage extends StatefulWidget {
+
+  final String jwtToken;
+
+  StatisticsPage({required this.jwtToken}) {
+    // Print the JWT token when the StatisticsPage is created
+    print('JWT Token: $jwtToken'); // Log the token
+  }
+
   @override
   _StatisticsPageState createState() => _StatisticsPageState();
 }
@@ -18,8 +27,17 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   // Function to fetch case count data from the API
   Future<void> fetchCaseData() async {
+    final url = "https://rabitrack-backend-production.up.railway.app/getCaseCount";
     try {
-      final response = await http.get(Uri.parse('https://rabitrack-backend-production.up.railway.app/getCaseCount'));
+      // Remove any leading or trailing whitespace from the token
+      final formattedToken = widget.jwtToken.trim();
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Cookie': 'jwttoken=${formattedToken}', // Include the jwtToken in the headers
+        },
+      );
 
       print('Response status: ${response.statusCode}'); // Log status code
       print('Response body: ${response.body}'); // Log response body
@@ -64,6 +82,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     final String doctorId = doctorInfo['doctorId'] ?? 'Unknown';
     final String area = doctorInfo['area'] ?? 'Unknown';
     final String district = doctorInfo['district'] ?? 'Unknown';
+
 
     return Scaffold(
       appBar: AppBar(
@@ -150,7 +169,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ProfilePage(),
+                builder: (context) => ProfilePage(jwtToken: widget.jwtToken),
                 settings: RouteSettings(arguments: doctorInfo),
               ),
             );

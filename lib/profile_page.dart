@@ -1,9 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:RABI_TRACK/credits.dart'; // Replace with correct path if needed
-import 'package:RABI_TRACK/statistics.dart'; // Update with the correct path if necessary
 import 'package:RABI_TRACK/home.dart'; // Ensure HomePage is imported
+import 'package:RABI_TRACK/statistics.dart'; // Update with the correct path if necessary
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
+
+  final String jwtToken;
+
+  ProfilePage({required this.jwtToken});
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -20,7 +26,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final String doctorId = doctorInfo['doctorId'] ?? 'Unknown';
     final String area = doctorInfo['area'] ?? 'Unknown';
     final String district = doctorInfo['district'] ?? 'Unknown';
-
+    //final String jwtToken = doctorInfo['jwtToken'] ?? 'Unknown';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile Page',style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold,color: Colors.white),),
@@ -94,9 +100,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: ListTile(
                   leading: Icon(Icons.logout, size: 30),
                   title: Text('Log Out', style: TextStyle(fontSize: 20)),
-                  onTap: () {
+                  onTap: () async {
                     // Clear session data (if applicable)
-                    // Example: await clearUserSession();
+                    final prefs = await SharedPreferences.getInstance();
+
+                    // Remove the JWT token
+                    await prefs.remove('jwtToken'); // Make sure 'jwtToken' is the key you used to store the token
 
                     // Log out logic here
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -145,7 +154,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => StatisticsPage(),
+                builder: (context) => StatisticsPage(jwtToken: widget.jwtToken),
                 settings: RouteSettings(arguments: doctorInfo),
               ),
             );

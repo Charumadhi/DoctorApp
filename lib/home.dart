@@ -2,9 +2,11 @@ import 'package:RABI_TRACK/past_attack_reports.dart';
 import 'package:RABI_TRACK/profile_page.dart'; // Import ProfilePage if necessary
 import 'package:RABI_TRACK/statistics.dart';
 import 'package:flutter/material.dart';
+
 import 'attack_form.dart'; // Import the AttackForm screen
 
 class HomePage extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
@@ -18,6 +20,8 @@ class HomePage extends StatelessWidget {
     final String area = doctor['area'] ?? 'Unknown';
     final String district = doctor['district'] ?? 'Unknown';
     final String jwtToken = doctor['jwtToken'];
+
+    print("Token got from main file: $jwtToken");
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -110,7 +114,7 @@ class HomePage extends StatelessWidget {
                     doctorName: doctorName,
                     area: area,
                     district: district,
-
+                    jwtToken: jwtToken
                   ),
                   height: 100, // Set a smaller height for the button
                 ),
@@ -145,16 +149,20 @@ class HomePage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => StatisticsPage(),
-                settings: RouteSettings(arguments: doctor), // Pass doctorInfo to StatisticsPage
+                builder: (context) => StatisticsPage(jwtToken: jwtToken),
+                settings: RouteSettings(arguments: {
+                  'doctor': doctor,
+                  }),
               ),
             );
           } else if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ProfilePage(),
-                settings: RouteSettings(arguments: doctor), // Pass doctorInfo to ProfilePage
+                builder: (context) => ProfilePage(jwtToken: jwtToken),
+                settings: RouteSettings(arguments: {
+                  'doctor': doctor,
+                  }),
               ),
             );
           }

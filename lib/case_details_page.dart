@@ -1,11 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class CaseDetailsPage extends StatefulWidget {
   final String caseId;
+  final String jwtToken; // Add jwtToken as a parameter
 
-  const CaseDetailsPage({Key? key, required this.caseId}) : super(key: key);
+  const CaseDetailsPage({Key? key, required this.caseId, required this.jwtToken}) : super(key: key);
 
   @override
   _CaseDetailsPageState createState() => _CaseDetailsPageState();
@@ -26,14 +28,21 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
     final url = 'https://rabitrack-backend-production.up.railway.app/getCaseDetailsByCaseId/${widget.caseId}';
 
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer ${widget.jwtToken}', // Include JWT token here
+        },
+      );
 
       if (response.statusCode == 200) {
-        setState(() {
-          caseDetails = json.decode(response.body);
-          isLoading = false;
-          hasError = false; // Reset error state on successful fetch
-        });
+        if (mounted) { // Check if the widget is still mounted
+          setState(() {
+            caseDetails = json.decode(response.body);
+            isLoading = false;
+            hasError = false; // Reset error state on successful fetch
+          });
+        }
       } else {
         // Handle non-200 status codes
         handleFetchError();
@@ -44,10 +53,12 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
   }
 
   void handleFetchError() {
-    setState(() {
-      hasError = true;
-      isLoading = false;
-    });
+    if (mounted) { // Check if the widget is still mounted
+      setState(() {
+        hasError = true;
+        isLoading = false;
+      });
+    }
 
     // Retry fetching after a delay
     Future.delayed(Duration(seconds: 2), () {
@@ -59,7 +70,12 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
     final url = 'https://rabitrack-backend-production.up.railway.app/deleteCase/${widget.caseId}';
 
     try {
-      final response = await http.delete(Uri.parse(url));
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer ${widget.jwtToken}', // Include JWT token here
+        },
+      );
 
       if (response.statusCode == 200) {
         // Case deleted successfully
