@@ -5,8 +5,9 @@ import 'case_details_page.dart';
 
 class PastAttackReportsPage extends StatefulWidget {
   final String doctorId;
+  final String jwtToken;
 
-  const PastAttackReportsPage({Key? key, required this.doctorId}) : super(key: key);
+  const PastAttackReportsPage({Key? key, required this.doctorId,required this.jwtToken}) : super(key: key);
 
   @override
   _PastAttackReportsPageState createState() => _PastAttackReportsPageState();
@@ -15,7 +16,7 @@ class PastAttackReportsPage extends StatefulWidget {
 class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
   List<dynamic> attackReports = [];
   bool isLoading = true;
-  bool hasError = false;
+  String? errorMessage; // Variable to hold error messages
 
   @override
   void initState() {
@@ -27,26 +28,47 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
     final url = 'https://rabitrack-backend-production.up.railway.app/getCasesByDoctorId/${widget.doctorId}';
 
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url),headers: {
+        'Cookie': 'jwttoken=${widget.jwtToken}', // Include the jwtToken in the headers
+      },);
 
       if (response.statusCode == 200) {
+        final List<dynamic> decodedResponse = json.decode(response.body);
         setState(() {
-          attackReports = json.decode(response.body);
+          attackReports = decodedResponse;
+          errorMessage = null; // Clear error if reports exist
+          isLoading = false;
+        });
+      } else if (response.statusCode == 404) {
+        // Handle the case where no reports are found
+        setState(() {
+          attackReports = []; // Clear any previous reports
+          errorMessage = 'No past reports found'; // Update error message
+          isLoading = false;
+        });
+      }
+      else if (response.statusCode == 401) {
+        // Handle unauthorized access
+        setState(() {
+          errorMessage = "User doesn't have permission";
           isLoading = false;
         });
       } else {
+        // Handle other status codes (like 500)
         setState(() {
-          hasError = true;
+          errorMessage = 'Failed to load reports';
           isLoading = false;
         });
       }
     } catch (e) {
+      // Handle network errors
       setState(() {
-        hasError = true;
+        errorMessage = 'Failed to load reports';
         isLoading = false;
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -84,14 +106,25 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
           Expanded(
             child: isLoading
                 ? Center(child: CircularProgressIndicator())
-                : hasError
+                : errorMessage != null
                 ? Center(
-              child: Text(
-                'No past reports found',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.redAccent,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    errorMessage!,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  if (errorMessage == 'Failed to load reports') // Show retry button only on error
+                    ElevatedButton(
+                      onPressed: fetchPastAttackReports,
+                      child: Text('Retry'),
+                    ),
+                ],
               ),
             )
                 : ListView.builder(

@@ -314,7 +314,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
+                  backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                   shadowColor: Colors.black,
                   elevation: 5,

@@ -13,7 +13,8 @@ dependencies:
   intl: ^0.17.0
   provider: ^6.0.0 # Check for the latest version
   http: ^0.13.4  # Update to the latest version
-
+  shared_preferences: ^2.0.15
+  jwt_decode: ^0.3.1
 
   # The following adds the Cupertino Icons font to your application.
   cupertino_icons: ^1.0.6
@@ -46,6 +47,10 @@ flutter:
     - assets/Rabitrackrivertr.png
     - assets/Rabitrackrivertr-modified.png
 
+    - assets/background.png
+    - assets/bg.avif
+    - assets/bg1.avif
+    - assets/crop.png
   # You can add custom fonts to your application here
   fonts:
     - family: Averia Gruesa Libre

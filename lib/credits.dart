@@ -1,6 +1,4 @@
-import 'package:RABI_TRACK/profile_page.dart';
 import 'package:flutter/material.dart';
-import 'package:RABI_TRACK/statistics.dart';
 
 class CreditsPage extends StatelessWidget {
   @override
@@ -27,7 +25,7 @@ class CreditsPage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFe0f7fa),  // Light teal to give a soft professional look
+              Color(0xFFd1c4e9),  // Soft lavender
               Color(0xFFffffff),  // White
             ],
           ),
@@ -61,10 +59,10 @@ class CreditsPage extends StatelessWidget {
     );
   }
 
-// Card style for the information sections
+  // Card style for the information sections
   Widget _buildInfoCard(String logoPath, String text) {
     return Card(
-      elevation: 4,
+      elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -85,10 +83,10 @@ class CreditsPage extends StatelessWidget {
     );
   }
 
-// Card with subtitle for guidance section
+  // Card with subtitle for guidance section
   Widget _buildInfoCardWithSubtitle(String logoPath, String name, String position) {
     return Card(
-      elevation: 4,
+      elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -125,10 +123,10 @@ class CreditsPage extends StatelessWidget {
     );
   }
 
-// Development team card design
+  // Development team card design
   Widget _buildDevelopmentTeam() {
     return Card(
-      elevation: 4,
+      elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -165,7 +163,7 @@ class CreditsPage extends StatelessWidget {
     );
   }
 
-// Section header with custom style
+  // Section header with custom style
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
@@ -180,7 +178,7 @@ class CreditsPage extends StatelessWidget {
     );
   }
 
-// Logo styling with soft shadow
+  // Logo styling with soft shadow
   Widget _buildLogo(String logoPath) {
     return Image.asset(
       logoPath,
@@ -189,7 +187,4 @@ class CreditsPage extends StatelessWidget {
       fit: BoxFit.cover,
     );
   }
-
-  // Helper Method to Build Section Headers
-
 }

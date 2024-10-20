@@ -17,7 +17,7 @@ class HomePage extends StatelessWidget {
     final String doctorId = doctor['doctorId'] ?? 'Unknown';
     final String area = doctor['area'] ?? 'Unknown';
     final String district = doctor['district'] ?? 'Unknown';
-
+    final String jwtToken = doctor['jwtToken'];
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -35,7 +35,7 @@ class HomePage extends StatelessWidget {
         height: double.infinity, // Use full height
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: NetworkImage('https://img.freepik.com/free-photo/decorative-background-with-smoke_23-2147611841.jpg'),
+            image: const AssetImage('assets/bg1.avif'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
               Colors.blue.withOpacity(0.4),
@@ -93,9 +93,9 @@ class HomePage extends StatelessWidget {
                   context,
                   'View Past Attack Reports',
                   Icons.visibility,
-                  Colors.indigo.withOpacity(0.6),
+                  Colors.indigo.withOpacity(1),
                   Colors.white,
-                  navigateTo: PastAttackReportsPage(doctorId: doctorId), // Pass doctorId here
+                  navigateTo: PastAttackReportsPage(doctorId: doctorId,jwtToken: jwtToken), // Pass doctorId here
                   height: 100, // Set a smaller height for the button
                 ),
                 SizedBox(height: 25),
@@ -103,13 +103,14 @@ class HomePage extends StatelessWidget {
                   context,
                   'Create New Attack Report',
                   Icons.create,
-                  Colors.indigo.shade700.withOpacity(0.6),
+                  Colors.indigo.shade700.withOpacity(1),
                   Colors.white,
                   navigateTo: AttackFormPage(
                     doctorId: doctorId,
                     doctorName: doctorName,
                     area: area,
                     district: district,
+
                   ),
                   height: 100, // Set a smaller height for the button
                 ),
@@ -119,6 +120,8 @@ class HomePage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.transparent, // Make the background transparent
+        elevation: 0, // Remove shadow/elevation effect
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

@@ -32,19 +32,27 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
         setState(() {
           caseDetails = json.decode(response.body);
           isLoading = false;
+          hasError = false; // Reset error state on successful fetch
         });
       } else {
-        setState(() {
-          hasError = true;
-          isLoading = false;
-        });
+        // Handle non-200 status codes
+        handleFetchError();
       }
     } catch (e) {
-      setState(() {
-        hasError = true;
-        isLoading = false;
-      });
+      handleFetchError();
     }
+  }
+
+  void handleFetchError() {
+    setState(() {
+      hasError = true;
+      isLoading = false;
+    });
+
+    // Retry fetching after a delay
+    Future.delayed(Duration(seconds: 2), () {
+      fetchCaseDetails();
+    });
   }
 
   Future<void> deleteCase() async {
@@ -73,13 +81,12 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        foregroundColor: Colors.white, // Set the text and icon color to white
+        foregroundColor: Colors.white,
         title: Text(
           'Case Details',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -89,7 +96,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : hasError
-          ? Center(child: Text('Failed to load case details', style: TextStyle(color: Colors.red)))
+          ? Center(child: Text('Failed to load case details. Retrying...', style: TextStyle(color: Colors.red)))
           : caseDetails != null
           ? SingleChildScrollView(
         child: Padding(
@@ -102,12 +109,14 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
               SizedBox(height: 24),
               buildSectionHeader('Victim Details'),
               buildDetailCard(caseDetails!['victim'], false),
+              SizedBox(height: 100), // Extra space at the bottom for scrolling
             ],
           ),
         ),
       )
           : Center(child: Text('No details available')),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: caseDetails != null // Only show delete button when details are available
+          ? FloatingActionButton(
         onPressed: () {
           // Show confirmation dialog before deletion
           showDialog(
@@ -137,7 +146,8 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
         },
         backgroundColor: Colors.red,
         child: Icon(Icons.delete),
-      ),
+      )
+          : null, // No button if details are not loaded
     );
   }
 
@@ -174,7 +184,6 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
           buildInfoRow('Sex', details?['sex'] == 'M' ? 'Male' : details?['sex'] == 'F' ? 'Female' : 'N/A'),
           buildInfoRow('Breed', details?['breed']),
           buildInfoRow('Vaccination Status', details?['vaccination_status'] == 1 ? 'Yes' : 'No'),
-
           if (isAttacker) ...[
             buildMultilineInfoRow('Attacker Condition', details?['attacker_condition']),
             buildInfoRow('Attack Area', caseDetails!['pincode']),
@@ -208,7 +217,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
             child: Text(
               value != null ? value.toString() : 'N/A',
               style: TextStyle(fontSize: 18),
-              textAlign: TextAlign.end, // Use TextAlign.end for right alignment
+              textAlign: TextAlign.end,
             ),
           ),
         ],
@@ -233,7 +242,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
             child: Text(
               value != null ? value.toString() : 'N/A',
               style: TextStyle(fontSize: 18),
-              textAlign: TextAlign.end, // Align to the right side
+              textAlign: TextAlign.end,
             ),
           ),
         ],

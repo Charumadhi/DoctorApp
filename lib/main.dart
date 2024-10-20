@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:RABI_TRACK/statistics.dart'; // Import your StatisticsPage
 import 'package:RABI_TRACK/home.dart'; // Import your HomePage
 import 'package:RABI_TRACK/profile_page.dart'; // Import your ProfilePage
-import 'theme_provider.dart'; // Import your theme provider
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // Add this line
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 void main() {
   runApp(const RabitrackRiverApp());
@@ -19,18 +20,18 @@ class RabitrackRiverApp extends StatelessWidget {
       title: 'Rabitrack River',
       theme: ThemeData(
         primaryColor: Colors.blue,
-        colorScheme: ColorScheme.light(primary: Colors.blue), // Set the primary color
+        colorScheme: ColorScheme.light(primary: Colors.blue),
         textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Colors.black), // Default text color
+          bodyMedium: TextStyle(color: Colors.black),
         ),
       ),
-      initialRoute: '/login', // Set the initial route
+      initialRoute: '/login',
       routes: {
-        '/login': (context) => const LoginPage(), // Define the route for LoginPage
-        '/statistics': (context) => StatisticsPage(), // Define the route for StatisticsPage
-        '/home': (context) => HomePage(), // Define the route for HomePage
-        '/profile': (context) => ProfilePage(), // Define the route for ProfilePage
-        '/register': (context) => const RegistrationPage(), // Define the route for RegistrationPage
+        '/login': (context) => const LoginPage(),
+        '/statistics': (context) => StatisticsPage(),
+        '/home': (context) => HomePage(),
+        '/profile': (context) => ProfilePage(),
+        '/register': (context) => const RegistrationPage(),
       },
     );
   }
@@ -43,8 +44,54 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
   bool isLogin = true; // Toggle between login and registration
+  bool isLoading = false; // Add loading state
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  final TextEditingController idController = TextEditingController();
+  final TextEditingController dobController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController regNoController = TextEditingController();
+  final TextEditingController areaController = TextEditingController();
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        // Format the date as YYYY-MM-DD
+        dobController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      });
+    }
+  }
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        // Reset animation when completed
+        _controller.reverse();
+      }
+    });
+    _animation = Tween<double>(begin: 1.0, end: 1.5).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.bounceOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,16 +119,16 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    const SizedBox(height: 60), // Add some space from the top
+                    const SizedBox(height: 60),
 
                     // Centered Logo Image
                     Image.asset(
                       'assets/Rabitrackrivertr.png', // Replace with your logo image path
-                      width: 50, // Adjust logo size as needed
+                      width: 50,
                       height: 70,
                     ),
 
-                    const SizedBox(height: 20), // Space between logo and text
+                    const SizedBox(height: 20),
 
                     // Welcome Text
                     const Text(
@@ -129,7 +176,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildLoginForm(BuildContext context) {
-    final TextEditingController idController = TextEditingController();
 
 
     return Column(
@@ -143,115 +189,168 @@ class _LoginPageState extends State<LoginPage> {
             filled: true,
             fillColor: Colors.white.withOpacity(0.7),
             prefixIcon: const Icon(Icons.medical_services, color: Colors.black),
-
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.7), // Add a consistent border color
+                color: Colors.white.withOpacity(0.7),
               ),
             ),
           ),
           style: const TextStyle(color: Colors.black),
         ),
         const SizedBox(height: 20),
-
-        // Password Field
-
-
-        // "Paw Button" (Small, round button with only paw icon)
+        TextFormField(
+          controller: dobController,
+          decoration: InputDecoration(
+            labelText: 'Date of Birth (YYYY-MM-DD)',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            prefixIcon: IconButton(
+              icon: const Icon(Icons.calendar_today, color: Colors.black),
+              onPressed: () => _selectDate(context), // Open date picker
+            ),
+          ),
+          style: const TextStyle(color: Colors.black),
+          readOnly: true, // Prevent manual input
+        ),
+        const SizedBox(height: 20),
+        // "Paw Button"
         Center(
-          child: SizedBox(
-            width: 60, // Small circular button
-            height: 60,
-            child: ElevatedButton(
-              onPressed: () async {
-                // Extract doctor ID and password
-                final doctorId = idController.text.trim();
-
-                print("Id is $doctorId");
-
-                // Log the request URL for debugging
-                final url = 'https://rabitrack-backend-production.up.railway.app/login';
-
-                try {
-                  // Create JSON body
-                  final body = jsonEncode({
-                    'doctorId': doctorId, // Include doctorId in the JSON body
+          child: ScaleTransition(
+            scale: _animation,
+            child: SizedBox(
+              width: 60,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                  setState(() {
+                    isLoading = true; // Set loading to true
+                    _controller.forward(); // Start the animation
                   });
 
-                  final response = await http.post(
-                    Uri.parse(url),
-                    headers: {
-                      'Content-Type': 'application/json', // Required for POST
-                      'Accept': 'application/json',
-                    },
-                    body: body, // Send the JSON body
-                  );
+                  final doctorId = idController.text.trim();
+                  final dob = dobController.text.trim();
+                  final prefs = await SharedPreferences.getInstance();
+                  final token = prefs.getString('jwttoken');
 
-
-                  // Log the response status and body for debugging
-                  print("Response status: ${response.statusCode}");
-                  print("Response body: ${response.body}");
-
-                  print("Id is $doctorId");
-
-                  // Check if the response is successful
-                  if (response.statusCode == 200) {
-                    try {
-                      final data = json.decode(response.body);
-                      print("The data is: $data");
-
-                      // Logging individual details for verification
-                      print("Doctor ID: ${data['doctor_id']}");
-                      print("Doctor Name: ${data['doctor_name']}");
-                      print("Working In: ${data['working_in']}");
-                      print("District: ${data['district']}");
-                      print("Area: ${data['area']}");
-
-                      if (data['isAuth'] == true) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => HomePage(),
-                            settings: RouteSettings(
-                              arguments: {
-                                'doctorName': data['doctor_name'], // Assuming these keys are in the response
-                                'doctorId': data['doctor_id'],      // Ensure these keys exist in the response
-                                'area': data['area'],
-                                'district': data['district'],
-                              },
-                            ),
-                          ),
-                        );
-                      } else if (data.containsKey('error') && data['error'] == 'Doctor not found') {
-                        // Show a pop-up if the doctor ID does not exist
-                        _showErrorDialog(context, "No such doctor exists");
-                      } else {
-                        _showErrorDialog(context, "Invalid credentials");
-                      }
-                    } catch (jsonError) {
-                      // Handle JSON decoding error
-                      _showErrorDialog(context, "Unexpected server response");
-                      print("JSON parsing error: $jsonError");
-                    }
-                  } else if (response.statusCode == 401) {
-                    // If the status code is 401, show a pop-up indicating no such doctor exists
-                    _showErrorDialog(context, "No such doctor exists! Please enter a valid id");
-                  } else {
-                    print("Error: ${response.reasonPhrase}"); // Log reason phrase
+                  // Check if the doctorId or dob is empty
+                  if (doctorId.isEmpty || dob.isEmpty) {
+                    setState(() {
+                      isLoading = false; // Reset loading state
+                    });
+                    _showErrorDialog(context, "Please enter all the fields");
+                    return; // Exit early if doctorId or dob is empty
                   }
-                } catch (error) {
-                  _showErrorDialog(context, "An error occurred");
-                  print("Error logging in: $error");
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                shape: const CircleBorder(), // Circular shape
-                padding: const EdgeInsets.all(15), // Padding to make it circular
-                elevation: 5,
+
+                  final doctorIdPattern = RegExp(r'^PVC\d{4}$');
+                  if (!doctorIdPattern.hasMatch(doctorId)) {
+                    setState(() {
+                      isLoading = false;
+                    });
+                    _showErrorDialog(context, "Invalid Doctor ID format. Please use the format PVCXXXX.");
+                    return;
+                  }
+
+                  final url = 'https://rabitrack-backend-production.up.railway.app/login';
+
+                  try {
+                    final body = jsonEncode({
+                      'doctorId': doctorId,
+                      'DOB': dob,
+                    });
+
+                    final response = await http.post(
+                      Uri.parse(url),
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer $token', // Include token if available
+                      },
+                      body: body,
+                    );
+
+                    print("Response status: ${response.statusCode}");
+                    print("Response body: ${response.body}");
+
+                    if (response.statusCode == 200) {
+                      // Handle successful login
+                      try {
+                        final data = json.decode(response.body);
+                        if (data['isAuth'] == true) {
+                          // Store the JWT token in SharedPreferences
+                          await prefs.setString('jwttoken', response.headers['set-cookie'] ?? '');
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => HomePage(),
+                              settings: RouteSettings(
+                                arguments: {
+                                  'doctorName': data['doctor_name'],
+                                  'doctorId': data['doctor_id'],
+                                  'area': data['area'],
+                                  'district': data['district'],
+                                  'jwtToken': response.headers['set-cookie'] ?? '',
+                                },
+                              ),
+                            ),
+                          );
+                        }
+                        else if (data.containsKey('error') && data['error'] == 'Doctor not found') {
+                          // Show a pop-up if the doctor ID does not exist
+                          _showErrorDialog(context, "No such doctor exists");
+                        } else {
+                          // Handle invalid credentials
+                          _showErrorDialog(context, "Invalid credentials");
+                        }
+                      } catch (jsonError) {
+                        // Handle JSON decoding error
+                        _showErrorDialog(context, "Unexpected server response");
+                        print("JSON parsing error: $jsonError");
+                      }
+                    } else if (response.statusCode == 401) {
+                      // Handle unauthorized access
+                      final data = json.decode(response.body);
+                      if (data.containsKey('isAuth') && data['isAuth'] == false) {
+                        // If the date of birth is incorrect, display a message
+                        _showErrorDialog(context, "Incorrect date of birth. Please try again.");
+                      } else {
+                        // Fallback for other 401 errors
+                        _showErrorDialog(context, "Unauthorized access.");
+                      }
+                    } else {
+                      // Handle other status codes
+                      _showErrorDialog(context, "An error occurred. Please try again.");
+                      print("Error: ${response.reasonPhrase}"); // Log reason phrase
+                    }
+                  } catch (error) {
+                    // General error handling for network or other issues
+                    _showErrorDialog(context, "An error occurred");
+                    print("Error logging in: $error");
+                  } finally {
+                    // Reset loading state
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
+                },
+
+
+
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  shape: const CircleBorder(),
+                  padding: const EdgeInsets.all(15),
+                  elevation: 5,
+                ),
+                child: isLoading
+                    ? CircularProgressIndicator(color: Colors.white) // Show loader
+                    : const Icon(Icons.pets, color: Colors.white), // Only the paw icon
               ),
-              child: const Icon(Icons.pets, color: Colors.white), // Only the paw icon
             ),
           ),
         ),
@@ -260,32 +359,26 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Function to show error dialog
   void _showErrorDialog(BuildContext context, String message) {
-    if (context != null) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Error'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(ctx).pop();
-              },
-            ),
-          ],
-        ),
-      );
-    }
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildRegistrationForm(BuildContext context) {
 
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController regNoController = TextEditingController();
-    final TextEditingController areaController = TextEditingController();
     String? workType;
     String? workDistrict;
 
@@ -322,7 +415,26 @@ class _LoginPageState extends State<LoginPage> {
           style: const TextStyle(color: Colors.black),
         ),
         const SizedBox(height: 20),
-
+        TextFormField(
+          controller: dobController,
+          decoration: InputDecoration(
+            labelText: 'Date of Birth (YYYY-MM-DD)',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.calendar_today, color: Colors.black),
+              onPressed: () => _selectDate(context), // Open date picker
+            ),
+          ),
+          style: const TextStyle(color: Colors.black),
+          readOnly: true, // Prevent manual input
+        ),
+        const SizedBox(height: 20),
+        // Work Type Dropdown
         // Working In Field
         DropdownButtonFormField<String>(
           decoration: InputDecoration(
@@ -345,11 +457,13 @@ class _LoginPageState extends State<LoginPage> {
             workType = value;
           },
         ),
-        const SizedBox(height: 30),
-        // Address of Workplace Field
+
+        const SizedBox(height: 20),
+
+        // Work District Dropdown
         DropdownButtonFormField<String>(
           decoration: InputDecoration(
-            labelText: 'Working district',
+            labelText: 'Work District',
             labelStyle: const TextStyle(color: Colors.white),
             filled: true,
             fillColor: Colors.white.withOpacity(0.7),
@@ -357,7 +471,7 @@ class _LoginPageState extends State<LoginPage> {
               borderRadius: BorderRadius.circular(15),
             ),
           ),
-          items: <String>['Puducherry', 'Karaikal', 'Mahe', 'Yenam']
+          items: <String>['Puducherry', 'Karaikal', 'Mahe', 'Yanam'] // Add more districts as needed
               .map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
@@ -388,16 +502,29 @@ class _LoginPageState extends State<LoginPage> {
         // Register Button
         ElevatedButton(
           onPressed: () async {
+            print("Register button pressed");
+
             // Gather data from the form
             final String name = nameController.text.trim();
             final String regNo = regNoController.text.trim();
             final String area = areaController.text.trim();
-
-            if (name.isEmpty || regNo.isEmpty || area.isEmpty || workType == null || workDistrict == null) {
+            final doctorId = regNoController.text.trim();
+            final String dob = dobController.text.trim();
+            // Check for empty fields
+            if (name.isEmpty || regNo.isEmpty || dob.isEmpty|| area.isEmpty || workType == null || workDistrict == null) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Please fill in all fields.')),
               );
-              return; // Exit the function early
+              return;
+            }
+
+            final doctorIdPattern = RegExp(r'^PVC\d{4}$');
+
+            print("Doctor ID entered: '$doctorId'");
+            // Validate the doctorId format
+            if (!doctorIdPattern.hasMatch(doctorId)) {
+              _showErrorDialog(context, "Invalid Doctor ID format. Please use the format PVCXXXX.");
+              return;
             }
 
             // Define the API endpoint
@@ -409,6 +536,7 @@ class _LoginPageState extends State<LoginPage> {
               final data = {
                 'doctorId': regNo,
                 'doctorName': name,
+                'DOB': dob,
                 'workingIn': workType,
                 'district': workDistrict,
                 'area': area,
@@ -422,35 +550,47 @@ class _LoginPageState extends State<LoginPage> {
                 body: json.encode(data),
               );
 
-
               print('Response status: ${response.statusCode}');
               print('Response body: ${response.body}');
 
+              final responseBody = json.decode(response.body);
 
-              if (response.statusCode == 200) {
-                // Define arguments to pass to the home page
+              if (response.statusCode == 200 && responseBody['Success'] == true) {
+                // Registration successful
                 final Map<String, String> arguments = {
                   'doctorName': name,
                   'doctorId': regNo,
                 };
 
-                // Navigate to the home page and pass arguments
                 Navigator.pushNamed(
                   context,
                   '/login',
                   arguments: arguments,
                 );
-              }else {
+              } else if (response.statusCode == 409 && responseBody['error'] == "doctor with the given ID is already registered") {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Registration failed.')),
+                  const SnackBar(content: Text('Doctor with the given ID is already registered.')),
+                );
+              } else {
+                print("Registration failed: ${responseBody['error']}");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Registration failed. Please try again.')),
                 );
               }
             } catch (e) {
+              print("Error occurred: $e");
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Network error occurred.')),
               );
             }
           },
+
+
+
+
+
+
+
           child: const Text('Register'),
         ),
         const SizedBox(height: 20),
@@ -458,6 +598,8 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+
 
 class RegistrationPage extends StatelessWidget {
   const RegistrationPage({super.key});
