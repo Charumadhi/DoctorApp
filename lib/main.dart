@@ -309,7 +309,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         _showErrorDialog(context, "Invalid credentials");
                       }
                     } else if (response.statusCode == 401) {
-                      _showErrorDialog(context, "Incorrect date of birth. Please try again.");
+                      _showErrorDialog(context, "Invalid Credentials. Please try again.");
                     } else {
                       _showErrorDialog(context, "An error occurred. Please try again.");
                     }

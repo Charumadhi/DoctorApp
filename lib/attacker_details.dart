@@ -38,7 +38,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
   String? _animalCondition;
   String? _gender;
   //int? _pincode;
-
+  String? _combinedBreed;
   void _submitForm() {
     if (_formKey.currentState?.validate() ?? false) {
       print("Form is valid, navigating to FirstQuestionPage");
@@ -101,13 +101,28 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
       onChanged: onChanged,
     );
   }
-
+  Widget _buildTextField(String label, ValueChanged<String> onChanged, {String? initialValue, String? Function(String?)? validator,TextInputType? keyboardType,}) {
+    return TextFormField(
+      initialValue: initialValue,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.9),
+      ),
+      onChanged: onChanged,
+      validator: validator,
+      keyboardType: keyboardType,
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('New Attack'),
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.blue,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -126,45 +141,60 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
               ),
               const SizedBox(height: 20),
 
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'What kind of species is it?',  // Label for the text field
-                  border: OutlineInputBorder(),  // Border around the text field
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _species = value;  // Store the input text in a variable
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the species';  // Validation message
-                  }
-                  return null;
-                },
+              _buildDropdownField(
+                'What kind of species is it?',
+                _species,
+                ['Dog', 'Cat', 'Goat', 'Cattle', 'Poultry'], // List of species options
+                    (value) => setState(() => _species = value),
               ),
               const SizedBox(height: 20),
 
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'What kind of breed is it?',  // Label for the text field
-                  border: OutlineInputBorder(),  // Border around the text field
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _breed = value;  // Store the input text in a variable
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the breed';  // Validation message
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
 
-              Column(
+          // Variable to hold the combined breed value
+
+
+// Dropdown for breed selection
+          _buildDropdownField(
+          'What kind of breed is it?',
+          _combinedBreed, // Use the combined breed variable
+          ['Pure breed', 'Cross bred', 'Non-Descript (specify)'], // List of breed options
+              (value) {
+            setState(() {
+              // Update the combined breed variable
+              _combinedBreed = value;
+            });
+          },
+        ),
+          const SizedBox(height: 20),
+
+// Conditional text field for specifying breed
+          if (_combinedBreed == 'Non-Descript (specify)')
+                TextFormField(
+              decoration: InputDecoration(
+              labelText: 'Specify the breed',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.8),
+              ),
+              onChanged: (value) {
+              setState(() {
+              // Update combined breed with specified value
+              _combinedBreed = 'Non-Descript (specify): $value'; // Combine both values
+              });
+              },
+              validator: (value) {
+              if (_combinedBreed == 'Non-Descript (specify): $value' && (value == null || value.isEmpty)) {
+              return 'Please specify the breed'; // Validation message
+              }
+              return null;
+              },
+              ),
+            const SizedBox(height: 20),
+
+
+    Column(
                 children: [
                   // Dropdown to select 'Months' or 'Years'
                   // Padding(
@@ -190,12 +220,14 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                   //   ),
                   // ),
                   // Age input field
-                  TextFormField(
+                  _buildTextField(
+                    'How old is that species?',
+                        (value) {
+                      setState(() {
+                        _age = int.tryParse(value);
+                      });
+                    },
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'How old is that species?',
-                      border: OutlineInputBorder(),
-                    ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter age';
@@ -206,12 +238,8 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                       }
                       return null;
                     },
-                    onChanged: (value) {
-                      setState(() {
-                        _age = int.tryParse(value); // Update _age with the user input
-                      });
-                    },
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
               const SizedBox(height: 20),
@@ -265,57 +293,29 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
               // ),
               const SizedBox(height: 20),
 
-              DropdownButtonFormField<String>(
-                value: _vaccinationStatus == null ? null : (_vaccinationStatus == true ? 'Vaccinated' : 'Not Vaccinated'),  // Map boolean to string or null
-                items: [
-                  // DropdownMenuItem<String>(
-                  //   value: null,  // Placeholder value
-                  //   child: Text('Select Vaccination Status'),  // Placeholder text
-                  // ),
-                  DropdownMenuItem<String>(
-                    value: 'Vaccinated',
-                    child: Text('Vaccinated'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'Not Vaccinated',
-                    child: Text('Not Vaccinated'),
-                  ),
-                ],
-                onChanged: (String? value) {
+              _buildDropdownField(
+                'Vaccination Status',
+                _vaccinationStatus == null ? null : (_vaccinationStatus == true ? 'Vaccinated' : 'Not Vaccinated'),
+                ['Vaccinated', 'Not Vaccinated', 'Not Known'],
+                    (value) {
                   setState(() {
-                    if (value == null) {
-                      _vaccinationStatus = null;  // Reset to null if placeholder is selected
-                    } else if (value == 'Vaccinated') {
-                      _vaccinationStatus = true;  // Set boolean based on string
+                    if (value == 'Vaccinated') {
+                      _vaccinationStatus = true;
                     } else if (value == 'Not Vaccinated') {
                       _vaccinationStatus = false;
+                    } else {
+                      _vaccinationStatus = null; // Reset if 'Not Known' is selected
                     }
                   });
                 },
-                decoration: InputDecoration(
-                  labelText: 'Vaccination Status',
-                  border: OutlineInputBorder(),
-                ),
               ),
               const SizedBox(height: 20),
 
-              DropdownButtonFormField<String>(
-                value: _animalCondition,
-                decoration: InputDecoration(
-                  labelText: 'How is it now?',
-                  border: OutlineInputBorder(),
-                  hintText: 'Condition of the Animal',
-                  hintStyle: TextStyle(color: Colors.indigo[600]),
-                ),
-                items: ['Natural Death', 'Dead with Rabies Symptoms', 'Alive with No Symptoms'].map((condition) => DropdownMenuItem<String>(
-                  value: condition,
-                  child: Text(condition),
-                )).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _animalCondition = value;
-                  });
-                },
+              _buildDropdownField(
+                'How is it now?',
+                _animalCondition,
+                ['Natural Death', 'Dead with Rabies Symptoms', 'Alive with No Symptoms'],
+                    (value) => setState(() => _animalCondition = value),
               ),
               const SizedBox(height: 20),
 

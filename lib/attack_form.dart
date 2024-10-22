@@ -36,6 +36,8 @@ class _AttackFormPageState extends State<AttackFormPage> {
   bool? _vaccinationStatus = null;  // No selection by default (nullable)
   int? _numberOfDoses; // smallint in the backend
   int? _pincode; // int in the backend
+  String? _breedDescription;
+
 
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _woundController = TextEditingController(); // For manual input of wound category
@@ -95,6 +97,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
         'vaccinationStatus': _vaccinationStatus, // Now this will be true or false
         'numberOfDoses': _numberOfDoses,
         'pincode': _pincode,
+
       };
 
       // Create a map to store the doctor details
@@ -213,27 +216,87 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   });
                 }),
                 const SizedBox(height: 20),
-                _buildTextField(
-                  'What kind of species is it?',
-                  _species,
-                  'Enter species',
-                      (value) {
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'What kind of species is it?',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
+                  ),
+                  value: _species,
+                  items: ['Dog', 'Cat', 'Goat', 'Cattle', 'Poultry']
+                      .map((species) => DropdownMenuItem<String>(
+                    value: species,
+                    child: Text(species),
+                  ))
+                      .toList(),
+                  onChanged: (value) {
                     setState(() {
-                      _species = value;
+                      _species = value!;
                     });
                   },
+                  hint: Text('Select species'),
                 ),
                 const SizedBox(height: 20),
-                _buildTextField(
-                  'What kind of breed is it?',
-                  _breed,
-                  'Enter breed',
-                      (value) {
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'What kind of breed is it?',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
+                  ),
+                  value: _breed,
+                  items: ['Pure breed', 'Cross bred', 'Non-Descript (specify)']
+                      .map((breed) => DropdownMenuItem<String>(
+                    value: breed,
+                    child: Text(breed),
+                  ))
+                      .toList(),
+                  onChanged: (value) {
                     setState(() {
-                      _breed = value;
+                      _breed = value!;
+                      // Clear breed description if not Non-Descript
+                      if (_breed != 'Non-Descript (specify)') {
+                        _breedDescription = '';
+                      }
                     });
                   },
+                  hint: Text('Select breed type'),
                 ),
+
+                if (_breed == 'Non-Descript (specify)')
+                  Padding(
+                      padding: const EdgeInsets.only(top: 10.0), // Add spacing
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Specify the breed',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.9),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            _breedDescription = value;
+                            // Combine both the selection and specified breed into _breed
+                            _breed = 'Non-Descript (specify): $_breedDescription';
+                          });
+                        },
+                        validator: (value) {
+                          if (_breed == 'Non-Descript (specify)' &&
+                              (value == null || value.isEmpty)) {
+                            return 'Please specify the breed';
+                          }
+                          return null;
+                        },
+                      ),
+                  ),
+
                 const SizedBox(height: 20),
                 _buildTextField(
                   'How old is that species?',
@@ -253,29 +316,37 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   });
                 }),
                 const SizedBox(height: 20),
-                _buildTextField(
-                  'Body part where it attacked?',
-                  _attackSite,
-                  'Enter attack site',
-                      (value) {
-                    setState(() {
-                      _attackSite = value;
-                    });
-                  },
-                ),
+                _buildDropdownField('Bite Site', _attackSite, ['Extremities of body', 'Hip region', 'chest region', 'neck and above'], (value) {
+                  setState(() {
+                    _attackSite = value;
+                  });
+                }),
                 const SizedBox(height: 20),
-                _buildTextField(
-                  'No. of wounds',
-                  null,
-                  'Enter number of wounds',
-                      (value) {
-                    setState(() {
-                      _woundCategory = int.tryParse(value);
-                    });
-                  },
-                  keyboardType: TextInputType.number,
+            DropdownButtonFormField<int>(
+              decoration: InputDecoration(
+                labelText: 'Wound Category',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15), // Match the border radius
                 ),
-                const SizedBox(height: 20),
+                filled: true, // Add this to make the background color consistent
+                fillColor: Colors.white.withOpacity(0.9),
+              ),
+              value: _woundCategory, // Initially selected value (null if none)
+              items: [1, 2, 3, 4]
+                  .map((wound) => DropdownMenuItem<int>(
+                value: wound,
+                child: Text(wound.toString()),
+              ))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  _woundCategory = value!;
+                });
+              },
+              hint: Text('Select number of wounds'),
+            ),
+
+            const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
                   value: _vaccinationStatus == null ? null : (_vaccinationStatus == true ? 'Vaccinated' : 'Not Vaccinated'),  // Map boolean to string or null
                   items: [
@@ -291,6 +362,10 @@ class _AttackFormPageState extends State<AttackFormPage> {
                       value: 'Not Vaccinated',
                       child: Text('Not Vaccinated'),
                     ),
+                    DropdownMenuItem<String>(
+                      value: 'Not Known',
+                      child: Text('Not Known'),
+                    ),
                   ],
                   onChanged: (String? value) {
                     setState(() {
@@ -300,36 +375,51 @@ class _AttackFormPageState extends State<AttackFormPage> {
                         _vaccinationStatus = true;  // Set boolean based on string
                       } else if (value == 'Not Vaccinated') {
                         _vaccinationStatus = false;
+                      } else  {
+                        _vaccinationStatus = null;
                       }
+
                     });
                   },
                   decoration: InputDecoration(
                     labelText: 'Vaccination Status',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
+
                   ),
                 ),
                 const SizedBox(height: 20),
                 // Conditionally show the text field if the vaccination status is true
                 if (_vaccinationStatus == true)
-                  TextFormField(
+                  DropdownButtonFormField<int>(
                     decoration: InputDecoration(
                       labelText: 'How many doses of vaccination?',
                       border: OutlineInputBorder(),
-                      hintText: 'Enter number of doses',
                     ),
-                    keyboardType: TextInputType.number,
+                    value: _numberOfDoses, // Initially selected value (null if none)
+                    items: [0, 3, 7, 14, 21, 28]
+                        .map((dose) => DropdownMenuItem<int>(
+                      value: dose,
+                      child: Text(dose.toString()),
+                    ))
+                        .toList(),
                     onChanged: (value) {
                       setState(() {
-                        _numberOfDoses = int.tryParse(value);
+                        _numberOfDoses = value!;
                       });
                     },
                     validator: (value) {
-                      if (_vaccinationStatus == true && (value == null || value.isEmpty)) {
-                        return 'Please enter the number of doses';
+                      if (_vaccinationStatus == true && value == null) {
+                        return 'Please select the number of doses';
                       }
                       return null;
                     },
+                    hint: Text('Select number of doses'),
                   ),
+
                 const SizedBox(height: 20),
                 _buildTextField(
                   'Enter your pincode',
