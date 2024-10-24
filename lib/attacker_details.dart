@@ -33,8 +33,8 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
   final _formKey = GlobalKey<FormState>();
   String? _species;
   String? _breed;
-  int? _age;
-  bool? _vaccinationStatus = null; // tinyint in the backend (true/false)
+  String? _age;
+  String? _vaccinationStatus; // tinyint in the backend (true/false)
   String? _animalCondition;
   String? _gender;
   //int? _pincode;
@@ -46,7 +46,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
         'species': _species,
         'age': _age,
         'sex': _gender,
-        'breed': _breed,
+        'breed': _combinedBreed, // Combined breed value here
         'vaccinationStatus': _vaccinationStatus,
         'condition': _animalCondition,
         // 'pincode': _pincode,
@@ -224,20 +224,20 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                     'How old is that species?',
                         (value) {
                       setState(() {
-                        _age = int.tryParse(value);
+                        _age = value;
                       });
                     },
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter age';
-                      }
-                      int? age = int.tryParse(value);
-                      if (age == null || age <= 0) {
-                        return 'Please enter a valid number above 0';
-                      }
-                      return null;
-                    },
+                    //keyboardType: TextInputType.number,
+                    // validator: (value) {
+                    //   if (value == null || value.isEmpty) {
+                    //     return 'Please enter age';
+                    //   }
+                    //   int? age = int.tryParse(value);
+                    //   if (age == null || age <= 0) {
+                    //     return 'Please enter a valid number above 0';
+                    //   }
+                    //   return null;
+                    // },
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -293,21 +293,35 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
               // ),
               const SizedBox(height: 20),
 
-              _buildDropdownField(
-                'Vaccination Status',
-                _vaccinationStatus == null ? null : (_vaccinationStatus == true ? 'Vaccinated' : 'Not Vaccinated'),
-                ['Vaccinated', 'Not Vaccinated', 'Not Known'],
-                    (value) {
+              DropdownButtonFormField<String>(
+                value: _vaccinationStatus,
+                items: [
+                  DropdownMenuItem<String>(
+                    value: 'Vaccinated',
+                    child: Text('Vaccinated'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Not Vaccinated',
+                    child: Text('Not Vaccinated'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Not Known',
+                    child: Text('Not Known'),
+                  ),
+                ],
+                onChanged: (String? value) {
                   setState(() {
-                    if (value == 'Vaccinated') {
-                      _vaccinationStatus = true;
-                    } else if (value == 'Not Vaccinated') {
-                      _vaccinationStatus = false;
-                    } else {
-                      _vaccinationStatus = null; // Reset if 'Not Known' is selected
-                    }
+                    _vaccinationStatus = value; // Store the selected string directly
                   });
                 },
+                decoration: InputDecoration(
+                  labelText: 'Vaccination Status',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.9),
+                ),
               ),
               const SizedBox(height: 20),
 
@@ -354,102 +368,103 @@ class FirstQuestionPage extends StatefulWidget {
   final Map<String, dynamic> victim;
   final Map<String, dynamic> attacker;
   final String jwtToken;
-  FirstQuestionPage({required this.doctor, required this.victim, required this.attacker,required this.jwtToken});
+
+  FirstQuestionPage({required this.doctor, required this.victim, required this.attacker, required this.jwtToken});
 
   @override
   _FirstQuestionPageState createState() => _FirstQuestionPageState();
 }
 
 class _FirstQuestionPageState extends State<FirstQuestionPage> {
+  // Define bools for each checkbox
+  bool woundWashing = false;
+  bool appliedTurmeric = false;
+  bool suturedWound = false;
+  bool appliedOintment = false;
 
-  Future<void> _nextQuestion(BuildContext context, bool firstaidStatus) async {
+  // Variable for vaccination dose dropdown
+  int? vaccinationDose; // Default value of dose to 0
+
+  // Function to submit data
+  Future<void> _nextQuestion(BuildContext context) async {
+    // Prepare the first aid status as a comma-separated string
+    String firstAidGiven = '';
+
+    if (woundWashing) firstAidGiven += "Wound washing done, ";
+    if (appliedTurmeric) firstAidGiven += "Applied turmeric/chilli powder on the wound, ";
+    if (suturedWound) firstAidGiven += "Sutured the wound, ";
+    if (appliedOintment) firstAidGiven += "Applied ointment on the wound, ";
+
+    // Remove the trailing comma and space
+    if (firstAidGiven.isNotEmpty) {
+      firstAidGiven = firstAidGiven.substring(0, firstAidGiven.length - 2);
+    }
+
     // Update victim with the first aid status
-    widget.victim['firstAidStatus'] = firstaidStatus;
-    // Print both maps to the terminal
-    // Print all details of the doctor map
-    print('Doctor Details:');
-    widget.doctor.forEach((key, value) {
-      print('$key: $value');
-    });
-
-// Print all details of the victim map
-    print('Victim Details:');
-    widget.victim.forEach((key, value) {
-      print('$key: $value');
-    });
-
-    // Print all details of the doctor map
-    print('Attacker Details:');
-    widget.attacker.forEach((key, value) {
-      print('$key: $value');
-    });
+    widget.victim['firstAidGiven'] = firstAidGiven;
+    // Add vaccination dose to the victim if vaccination status is true
+    if (widget.victim['vaccinationStatus'] == 'Vaccinated') {
+      widget.victim['vaccinationDose'] = vaccinationDose;
+    }
 
     // Prepare the payload for API request
+    // Prepare the payload for API request
     Map<String, dynamic> dataToSend = {
-      'doctor': widget.doctor,
-      'victim': widget.victim,
-      'attacker': widget.attacker,
-    };
-
-
-    // Prepare data for sending by excluding certain doctor fields and adjusting as needed
-    dataToSend = {
-      "doctorId": widget.doctor['doctorId'].toString(),
-      "attackDate": widget.victim['attackDate'].toString(),
       "attacker": {
         "species": widget.attacker['species'].toString(),
-        "age": widget.attacker['age'],
+        "age": widget.attacker['age'].toString(),
         "sex": widget.attacker['sex'].toString(),
         "breed": widget.attacker['breed'].toString(),
-        "vaccinationStatus": widget.attacker['vaccinationStatus'],   // Tinyint as string
+        "vaccinationStatus": widget.attacker['vaccinationStatus'].toString(),
         "condition": widget.attacker['condition'].toString(),
       },
       "victim": {
         "species": widget.victim['species'].toString(),
-        "age": widget.victim['age'],
+        "age": widget.victim['age'].toString(),  // Converted age to string
         "sex": widget.victim['gender'].toString(),
         "breed": widget.victim['breed'].toString(),
-        "vaccinationStatus": widget.victim['vaccinationStatus'],  // Tinyint as string
-        "vaccinationDose": widget.victim['numberOfDoses'],
+        "vaccinationStatus": widget.victim['vaccinationStatus'].toString(),
+        "boosterVaccination": widget.victim['boosterVaccination'],
+        "vaccinationDose": widget.victim['vaccinationDose'],
         "biteSite": widget.victim['attackSite'].toString(),
         "woundCategory": widget.victim['woundCategory'],
-        "firstAidStatus": widget.victim['firstAidStatus'],
+        "firstAidGiven": widget.victim['firstAidGiven'].toString(), // Converted firstAidGiven to string
       },
-      "pincode": widget.victim['pincode'],
-      "district": widget.doctor['district'],
+      "district": widget.doctor['district'].toString(),
+      "pincode": widget.victim['pincode'], // Converted pincode to string
+      "doctorId": widget.doctor['doctorId'].toString(),
+      "attackDate": widget.victim['attackDate'].toString(),
     };
 
-// Sending the modified data
+    // Print the data as JSON (with double quotes visible)
+    String jsonData = jsonEncode(dataToSend);
+    print(jsonData); // This will show the proper JSON format with double quotes
+
+    // Sending the modified data
     try {
       final formattedToken = widget.jwtToken.trim();
       final url = Uri.parse('https://rabitrack-backend-production.up.railway.app/addNewCase');
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json','Cookie': 'jwttoken=${formattedToken}',},
+        headers: {'Content-Type': 'application/json', 'Cookie': 'jwttoken=${formattedToken}',},
         body: jsonEncode(dataToSend),
       );
-      print(jsonEncode(dataToSend));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => SuccessPage(doctor: widget.doctor,jwtToken: widget.jwtToken),
+            builder: (context) => SuccessPage(doctor: widget.doctor, jwtToken: widget.jwtToken),
           ),
         );
-        print(response.body);
       } else {
-        print('Failed to submit data: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to submit data: ${response.body}')));
+        print(response.body);
       }
     } catch (error) {
-      print('Error occurred: $error');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error occurred: $error')));
     }
-
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -467,7 +482,7 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
           // Centered content on top of the background image
           Center(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20), // Adjust the horizontal padding as needed
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 padding: EdgeInsets.all(40),
                 decoration: BoxDecoration(
@@ -477,56 +492,103 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Page title
                     Text(
-                      'Was the first aid given?',
+                      'Actions Taken',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () => _nextQuestion(context, true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black12,
-                            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: Text(
-                            'Yes',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+
+                    // Check if vaccinationStatus is true to show the dropdown
+                    Text(
+                        'Number of doses given?',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
-                        ElevatedButton(
-                          onPressed: () => _nextQuestion(context, false),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black12,
-                            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                      ),
+                      const SizedBox(height: 10),
+                      DropdownButton<int>(
+                        dropdownColor: Colors.grey[700],
+                        value: vaccinationDose,
+                        items: [0, 3, 7, 14, 28].map((int value) {
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text(
+                              '$value doses',
+                              style: TextStyle(color: Colors.white),
                             ),
-                          ),
-                          child: Text(
-                            'No',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                          );
+                        }).toList(),
+                        onChanged: (int? newValue) {
+                          setState(() {
+                            vaccinationDose = newValue ?? 0;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                    // Four checkboxes for first aid options
+                    CheckboxListTile(
+                      title: Text("Wound washing done", style: TextStyle(color: Colors.white)),
+                      value: woundWashing,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          woundWashing = value ?? false;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text("Applied turmeric/chilli powder on the wound", style: TextStyle(color: Colors.white)),
+                      value: appliedTurmeric,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          appliedTurmeric = value ?? false;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text("Sutured the wound", style: TextStyle(color: Colors.white)),
+                      value: suturedWound,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          suturedWound = value ?? false;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text("Applied any ointment on the wound", style: TextStyle(color: Colors.white)),
+                      value: appliedOintment,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          appliedOintment = value ?? false;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () => _nextQuestion(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black12,
+                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      ],
+                      ),
+                      child: Text(
+                        'Submit',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ),

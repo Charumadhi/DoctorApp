@@ -29,12 +29,12 @@ class _AttackFormPageState extends State<AttackFormPage> {
   String? _area;
   String? _species;
   String? _breed;
-  int? _age; // tinyint in the backend
+  String? _age; // tinyint in the backend
   String? _gender; // char in the backend
   String? _attackSite;
   int? _woundCategory; // smallint in the backend
-  bool? _vaccinationStatus = null;  // No selection by default (nullable)
-  int? _numberOfDoses; // smallint in the backend
+  String? _vaccinationStatus;  // No selection by default (nullable)
+  bool? _boosterVaccination = null;  // No selection by default (nullable)
   int? _pincode; // int in the backend
   String? _breedDescription;
 
@@ -95,7 +95,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
         'attackSite': _attackSite,
         'woundCategory': _woundCategory,
         'vaccinationStatus': _vaccinationStatus, // Now this will be true or false
-        'numberOfDoses': _numberOfDoses,
+        'boosterVaccination': _boosterVaccination,
         'pincode': _pincode,
 
       };
@@ -304,10 +304,10 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   'Enter age',
                       (value) {
                     setState(() {
-                      _age = int.tryParse(value);
+                      _age = value;
                     });
                   },
-                  keyboardType: TextInputType.number,
+                  //keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 20),
                 _buildDropdownField('What gender is it?', _gender, ['M', 'F'], (value) {
@@ -348,12 +348,8 @@ class _AttackFormPageState extends State<AttackFormPage> {
 
             const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
-                  value: _vaccinationStatus == null ? null : (_vaccinationStatus == true ? 'Vaccinated' : 'Not Vaccinated'),  // Map boolean to string or null
+                  value: _vaccinationStatus,
                   items: [
-                    // DropdownMenuItem<String>(
-                    //   value: null,  // Placeholder value
-                    //   child: Text('Select Vaccination Status'),  // Placeholder text
-                    // ),
                     DropdownMenuItem<String>(
                       value: 'Vaccinated',
                       child: Text('Vaccinated'),
@@ -369,55 +365,60 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   ],
                   onChanged: (String? value) {
                     setState(() {
-                      if (value == null) {
-                        _vaccinationStatus = null;  // Reset to null if placeholder is selected
-                      } else if (value == 'Vaccinated') {
-                        _vaccinationStatus = true;  // Set boolean based on string
-                      } else if (value == 'Not Vaccinated') {
-                        _vaccinationStatus = false;
-                      } else  {
-                        _vaccinationStatus = null;
-                      }
-
+                      _vaccinationStatus = value; // Store the selected string directly
                     });
                   },
                   decoration: InputDecoration(
                     labelText: 'Vaccination Status',
                     border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(15),
                     ),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.9),
-
                   ),
                 ),
                 const SizedBox(height: 20),
                 // Conditionally show the text field if the vaccination status is true
-                if (_vaccinationStatus == true)
-                  DropdownButtonFormField<int>(
-                    decoration: InputDecoration(
-                      labelText: 'How many doses of vaccination?',
-                      border: OutlineInputBorder(),
-                    ),
-                    value: _numberOfDoses, // Initially selected value (null if none)
-                    items: [0, 3, 7, 14, 21, 28]
-                        .map((dose) => DropdownMenuItem<int>(
-                      value: dose,
-                      child: Text(dose.toString()),
-                    ))
-                        .toList(),
-                    onChanged: (value) {
+                if (_vaccinationStatus == 'Vaccinated')
+                  DropdownButtonFormField<String>(
+                    value: _boosterVaccination == null ? null : (_boosterVaccination == true ? 'Taken' : 'Not Taken'),  // Map boolean to string or null
+                    items: [
+                      // DropdownMenuItem<String>(
+                      //   value: null,  // Placeholder value
+                      //   child: Text('Select Vaccination Status'),  // Placeholder text
+                      // ),
+                      DropdownMenuItem<String>(
+                        value: 'Taken',
+                        child: Text('Taken'),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'Not Taken',
+                        child: Text('Not Taken'),
+                      ),
+                    ],
+                    onChanged: (String? value) {
                       setState(() {
-                        _numberOfDoses = value!;
+                        if (value == null) {
+                          _boosterVaccination = null;  // Reset to null if placeholder is selected
+                        } else if (value == 'Taken') {
+                          _boosterVaccination = true;  // Set boolean based on string
+                        } else if (value == 'Not Taken') {
+                          _boosterVaccination = false;
+                        } else  {
+                          _boosterVaccination = null;
+                        }
+
                       });
                     },
-                    validator: (value) {
-                      if (_vaccinationStatus == true && value == null) {
-                        return 'Please select the number of doses';
-                      }
-                      return null;
-                    },
-                    hint: Text('Select number of doses'),
+                    decoration: InputDecoration(
+                      labelText: 'Booster Vaccination Status',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.9),
+
+                    ),
                   ),
 
                 const SizedBox(height: 20),
