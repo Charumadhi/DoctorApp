@@ -32,11 +32,15 @@ class _AttackFormPageState extends State<AttackFormPage> {
   String? _age; // tinyint in the backend
   String? _gender; // char in the backend
   String? _attackSite;
-  int? _woundCategory; // smallint in the backend
+  String? _woundCategory; // smallint in the backend
   String? _vaccinationStatus;  // No selection by default (nullable)
   bool? _boosterVaccination = null;  // No selection by default (nullable)
-  int? _pincode; // int in the backend
+  //int? _pincode; // int in the backend
   String? _breedDescription;
+  String? _district;
+  String? name;
+  String? address;
+  String? mobile;
 
 
   final TextEditingController _dateController = TextEditingController();
@@ -94,11 +98,11 @@ class _AttackFormPageState extends State<AttackFormPage> {
         'gender': _gender,
         'attackSite': _attackSite,
         'woundCategory': _woundCategory,
-        'vaccinationStatus': _vaccinationStatus, // Now this will be true or false
+        'vaccinationStatus': _vaccinationStatus,
         'boosterVaccination': _boosterVaccination,
-        'pincode': _pincode,
-
+        'district': _district,
       };
+
 
       // Create a map to store the doctor details
       Map<String, dynamic> doctor = {
@@ -106,6 +110,13 @@ class _AttackFormPageState extends State<AttackFormPage> {
         'doctorName': widget.doctorName,
         'area': widget.area,
         'district': widget.district,
+      };
+
+      // Create a map to store the doctor details
+      Map<String, dynamic> owner = {
+        'name': name,
+        'address': address,
+        'mobile': mobile,
       };
 
       print('Doctor Details: $doctor');
@@ -119,6 +130,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
             doctor: doctor,
             victim: victim,
             jwtToken: widget.jwtToken,
+            owner: owner,
           ),
         ),
       );
@@ -176,8 +188,15 @@ class _AttackFormPageState extends State<AttackFormPage> {
         child: Text(item),
       )).toList(),
       onChanged: onChanged,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please select a value';
+        }
+        return null;
+      },
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -210,11 +229,23 @@ class _AttackFormPageState extends State<AttackFormPage> {
                 const SizedBox(height: 20),
                 _buildDateField(context),
                 const SizedBox(height: 20),
-                _buildDropdownField('Area', _area, ['Puducherry', 'Karaikal', 'Mahe', 'Yanam'], (value) {
+                _buildDropdownField('District', _district, ['Puducherry', 'Karaikal', 'Mahe', 'Yanam'], (value) {
                   setState(() {
-                    _area = value;
+                    _district = value;
                   });
                 }),
+                const SizedBox(height: 20),
+                _buildTextField(
+                  'Area',
+                  null,
+                  'Enter area',
+                      (value) {
+                    setState(() {
+                      _area = value;
+                    });
+                  },
+                  //keyboardType: TextInputType.number,
+                ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
@@ -226,7 +257,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                     fillColor: Colors.white.withOpacity(0.9),
                   ),
                   value: _species,
-                  items: ['Dog', 'Cat', 'Goat', 'Cattle', 'Poultry']
+                  items: ['Dog', 'Cat', 'Goat', 'Cattle', 'Poultry', 'Sheep', 'Unknown']
                       .map((species) => DropdownMenuItem<String>(
                     value: species,
                     child: Text(species),
@@ -250,7 +281,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                     fillColor: Colors.white.withOpacity(0.9),
                   ),
                   value: _breed,
-                  items: ['Pure breed', 'Cross bred', 'Non-Descript (specify)']
+                  items: ['Pure breed', 'Cross breed', 'Non-Descript (specify)']
                       .map((breed) => DropdownMenuItem<String>(
                     value: breed,
                     child: Text(breed),
@@ -310,43 +341,44 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   //keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 20),
-                _buildDropdownField('What gender is it?', _gender, ['M', 'F'], (value) {
-                  setState(() {
-                    _gender = value;
-                  });
-                }),
+                _buildDropdownField(
+                  'What gender is it?',
+                  _gender ,['M', 'F', 'Unknown'],
+                      (value) {
+                    setState(() {
+                      _gender = value; // Store 'Unknown' if no value is selected
+                    });
+                  },
+                ),
                 const SizedBox(height: 20),
-                _buildDropdownField('Bite Site', _attackSite, ['Extremities of body', 'Hip region', 'chest region', 'neck and above'], (value) {
+                _buildDropdownField('Bite Site', _attackSite, ['Extremities of body', 'Hip region', 'chest region', 'neck and above', 'Head', 'Trunk', 'Forelimb', 'Hindlimb'], (value) {
                   setState(() {
                     _attackSite = value;
                   });
                 }),
                 const SizedBox(height: 20),
-            DropdownButtonFormField<int>(
-              decoration: InputDecoration(
-                labelText: 'Wound Category',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15), // Match the border radius
-                ),
-                filled: true, // Add this to make the background color consistent
-                fillColor: Colors.white.withOpacity(0.9),
-              ),
-              value: _woundCategory, // Initially selected value (null if none)
-              items: [1, 2, 3, 4]
-                  .map((wound) => DropdownMenuItem<int>(
-                value: wound,
-                child: Text(wound.toString()),
-              ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _woundCategory = value!;
-                });
-              },
-              hint: Text('Select number of wounds'),
-            ),
-
-            const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                      value: _woundCategory,  // Remain null until user selection
+                      items: ['Severe', 'Moderate', 'Mild']
+                         .map((woundSeverity) => DropdownMenuItem<String>(
+                      value: woundSeverity,
+                      child: Text(woundSeverity),
+                  )).toList(),
+                  onChanged: (value) {
+                      setState(() {
+                        _woundCategory = value;  // Store selected value as a string
+                      });
+                  },
+                  decoration: InputDecoration(
+                      labelText: 'Wound Category',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.9),
+                  ),
+               ),
+                const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
                   value: _vaccinationStatus,
                   items: [
@@ -423,17 +455,52 @@ class _AttackFormPageState extends State<AttackFormPage> {
 
                 const SizedBox(height: 20),
                 _buildTextField(
-                  'Enter your pincode',
+                  'Name of the owner',
                   null,
-                  'Enter pincode',
+                  'Enter name',
                       (value) {
                     setState(() {
-                      _pincode = int.tryParse(value);
+                      name = value;
                     });
                   },
-                  keyboardType: TextInputType.number,
+                  //keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
+                _buildTextField(
+                  'Address of the owner',
+                  null,
+                  'Enter address',
+                      (value) {
+                    setState(() {
+                      address = value;
+                    });
+                  },
+                  //keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 20),
+                _buildTextField(
+                  'Mobile number of the owner',
+                  null,
+                  'Enter mobile no',
+                      (value) {
+                    setState(() {
+                      mobile = value;
+                    });
+                  },
+                  //keyboardType: TextInputType.number,
+                ),
+                // _buildTextField(
+                //   'Enter your pincode',
+                //   null,
+                //   'Enter pincode',
+                //       (value) {
+                //     setState(() {
+                //       _pincode = int.tryParse(value);
+                //     });
+                //   },
+                //   keyboardType: TextInputType.number,
+                // ),
+                // const SizedBox(height: 30),
                 Center(
                   child: ElevatedButton(
                     onPressed: _submitForm,

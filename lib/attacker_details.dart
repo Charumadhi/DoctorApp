@@ -2,13 +2,14 @@ import 'dart:convert';  // For encoding JSON objects
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 import 'home.dart';
 
 class AttackerDetailsPage extends StatefulWidget {
-
   final Map<String, dynamic> doctor;
   final Map<String, dynamic> victim;
+  final Map<String, dynamic> owner;
   final String jwtToken;
 
   const AttackerDetailsPage({
@@ -16,6 +17,7 @@ class AttackerDetailsPage extends StatefulWidget {
     required this.doctor,
     required this.victim,
     required this.jwtToken,
+    required this.owner,
   }) : super(key: key);
 
   @override
@@ -23,7 +25,6 @@ class AttackerDetailsPage extends StatefulWidget {
 }
 
 class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
-
   @override
   void initState() {
     super.initState();
@@ -31,14 +32,15 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
   }
 
   final _formKey = GlobalKey<FormState>();
+  DateTime? lastVaccinatedOn;
   String? _species;
   String? _breed;
   String? _age;
   String? _vaccinationStatus; // tinyint in the backend (true/false)
   String? _animalCondition;
   String? _gender;
-  //int? _pincode;
   String? _combinedBreed;
+
   void _submitForm() {
     if (_formKey.currentState?.validate() ?? false) {
       print("Form is valid, navigating to FirstQuestionPage");
@@ -48,36 +50,55 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
         'sex': _gender,
         'breed': _combinedBreed, // Combined breed value here
         'vaccinationStatus': _vaccinationStatus,
-        'condition': _animalCondition,
-        // 'pincode': _pincode,
+        'status': _animalCondition,
+        'lastVaccinatedOn': lastVaccinatedOn, // Store the vaccinated date
       };
       print("Moving to first question page");
 
       // Print both maps to the terminal
-      // Print all details of the doctor map
       print('Doctor Details:');
       widget.doctor.forEach((key, value) {
         print('$key: $value');
       });
 
-// Print all details of the victim map
       print('Victim Details:');
       widget.victim.forEach((key, value) {
         print('$key: $value');
       });
 
-      print('Attacker Details: $attacker');
+      print('Owner Details:');
+      widget.owner.forEach((key, value) {
+        print('$key: $value');
+      });
 
+      print('Attacker Details: $attacker');
 
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => FirstQuestionPage(
-          doctor: widget.doctor,
-          victim: widget.victim,
-          attacker: attacker,
-          jwtToken: widget.jwtToken,
-        )),
+        MaterialPageRoute(
+          builder: (context) => FirstQuestionPage(
+            doctor: widget.doctor,
+            victim: widget.victim,
+            attacker: attacker,
+            owner: widget.owner,
+            jwtToken: widget.jwtToken,
+          ),
+        ),
       );
+    }
+  }
+
+  void _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != lastVaccinatedOn) {
+      setState(() {
+        lastVaccinatedOn = picked;
+      });
     }
   }
 
@@ -101,7 +122,8 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
       onChanged: onChanged,
     );
   }
-  Widget _buildTextField(String label, ValueChanged<String> onChanged, {String? initialValue, String? Function(String?)? validator,TextInputType? keyboardType,}) {
+
+  Widget _buildTextField(String label, ValueChanged<String> onChanged, {String? initialValue, String? Function(String?)? validator, TextInputType? keyboardType,}) {
     return TextFormField(
       initialValue: initialValue,
       decoration: InputDecoration(
@@ -117,6 +139,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
       keyboardType: keyboardType,
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,8 +149,8 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Form( // Make sure to wrap your Column in a Form widget
-          key: _formKey, // Use the _formKey
+        child: Form(
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -141,158 +164,93 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
               ),
               const SizedBox(height: 20),
 
-              _buildDropdownField(
-                'What kind of species is it?',
-                _species,
-                ['Dog', 'Cat', 'Goat', 'Cattle', 'Poultry'], // List of species options
-                    (value) => setState(() => _species = value),
-              ),
-              const SizedBox(height: 20),
-
-
-          // Variable to hold the combined breed value
-
-
-// Dropdown for breed selection
-          _buildDropdownField(
-          'What kind of breed is it?',
-          _combinedBreed, // Use the combined breed variable
-          ['Pure breed', 'Cross bred', 'Non-Descript (specify)'], // List of breed options
-              (value) {
-            setState(() {
-              // Update the combined breed variable
-              _combinedBreed = value;
-            });
-          },
-        ),
-          const SizedBox(height: 20),
-
-// Conditional text field for specifying breed
-          if (_combinedBreed == 'Non-Descript (specify)')
-                TextFormField(
-              decoration: InputDecoration(
-              labelText: 'Specify the breed',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.8),
-              ),
-              onChanged: (value) {
-              setState(() {
-              // Update combined breed with specified value
-              _combinedBreed = 'Non-Descript (specify): $value'; // Combine both values
-              });
-              },
-              validator: (value) {
-              if (_combinedBreed == 'Non-Descript (specify): $value' && (value == null || value.isEmpty)) {
-              return 'Please specify the breed'; // Validation message
-              }
-              return null;
-              },
-              ),
-            const SizedBox(height: 20),
-
-
-    Column(
-                children: [
-                  // Dropdown to select 'Months' or 'Years'
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  //   child: DropdownButtonFormField<String>(
-                  //     value: _ageUnit, // Default value is 'Years'
-                  //     decoration: InputDecoration(
-                  //       labelText: 'Unit (Months/Years)',
-                  //       border: OutlineInputBorder(),
-                  //     ),
-                  //     onChanged: (String? newValue) {
-                  //       setState(() {
-                  //         _ageUnit = newValue!; // Update the unit
-                  //       });
-                  //     },
-                  //     items: <String>['Months', 'Years']
-                  //         .map<DropdownMenuItem<String>>((String value) {
-                  //       return DropdownMenuItem<String>(
-                  //         value: value,
-                  //         child: Text(value),
-                  //       );
-                  //     }).toList(),
-                  //   ),
-                  // ),
-                  // Age input field
-                  _buildTextField(
-                    'How old is that species?',
-                        (value) {
-                      setState(() {
-                        _age = value;
-                      });
-                    },
-                    //keyboardType: TextInputType.number,
-                    // validator: (value) {
-                    //   if (value == null || value.isEmpty) {
-                    //     return 'Please enter age';
-                    //   }
-                    //   int? age = int.tryParse(value);
-                    //   if (age == null || age <= 0) {
-                    //     return 'Please enter a valid number above 0';
-                    //   }
-                    //   return null;
-                    // },
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'What kind of species is it?',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  const SizedBox(height: 20),
-                ],
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.9),
+                ),
+                value: _species,
+                items: ['Dog', 'Cat', 'Goat', 'Cattle', 'Poultry', 'Sheep', 'Unknown']
+                    .map((species) => DropdownMenuItem<String>(
+                  value: species,
+                  child: Text(species),
+                ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _species = value!;
+                  });
+                },
+                hint: Text('Select species'),
               ),
               const SizedBox(height: 20),
-              _buildDropdownField('What gender is it?', _gender, ['M', 'F'], (value) {
-                setState(() {
-                  _gender = value;
-                });
-              }),
-              // const SizedBox(height: 20),
-              // TextFormField(
-              //   decoration: InputDecoration(
-              //     labelText: 'Please enter the pincode where the attack happened.',  // Label for the text field
-              //     border: OutlineInputBorder(),  // Border around the text field
-              //   ),
-              //   onChanged: (value) {
-              //     setState(() {
-              //       _pincode = int.tryParse(value);  // Safely parse to int
-              //     });
-              //   },
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please enter the pincode';  // Validation message
-              //     }
-              //     // Optional: You can add more validation here to check the length or format of the pincode
-              //     if (value.length != 6) {
-              //       return 'Please enter a valid 6-digit pincode';  // Example additional validation
-              //     }
-              //     return null;  // Valid input
-              //   },
-              // ),
-              //
-              // const SizedBox(height: 20),
 
-              // DropdownButtonFormField<String>(
-              //   value: _vaccinationStatus,
-              //   decoration: InputDecoration(
-              //     labelText: 'Do you know its Vaccination Status?',
-              //     border: OutlineInputBorder(),
-              //     hintText: 'Select Vaccination Status',
-              //     hintStyle: TextStyle(color: Colors.purple),
-              //   ),
-              //   items: ['Known', 'Unknown'].map((status) => DropdownMenuItem<String>(
-              //     value: status,
-              //     child: Text(status),
-              //   )).toList(),
-              //   onChanged: (value) {
-              //     setState(() {
-              //       _vaccinationStatus = value;
-              //     });
-              //   },
-              // ),
+              // Dropdown for breed selection
+              _buildDropdownField(
+                'What kind of breed is it?',
+                _combinedBreed,
+                ['Pure breed', 'Cross breed', 'Non-Descript (specify)'], // List of breed options
+                    (value) {
+                  setState(() {
+                    _combinedBreed = value;
+                  });
+                },
+              ),
               const SizedBox(height: 20),
 
+              // Conditional text field for specifying breed
+              if (_combinedBreed == 'Non-Descript (specify)')
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Specify the breed',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.8),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _combinedBreed = 'Non-Descript (specify): $value'; // Combine both values
+                    });
+                  },
+                  validator: (value) {
+                    if (_combinedBreed == 'Non-Descript (specify): $value' && (value == null || value.isEmpty)) {
+                      return 'Please specify the breed'; // Validation message
+                    }
+                    return null;
+                  },
+                ),
+              const SizedBox(height: 20),
+
+              // Age input field
+              _buildTextField(
+                'How old is that species?',
+                    (value) {
+                  setState(() {
+                    _age = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Gender selection
+              _buildDropdownField(
+                'What gender is it?',
+                _gender ,['M', 'F', 'Unknown'],
+                    (value) {
+                  setState(() {
+                    _gender = value; // Store 'Unknown' if no value is selected
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Vaccination Status dropdown
               DropdownButtonFormField<String>(
                 value: _vaccinationStatus,
                 items: [
@@ -325,14 +283,32 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
               ),
               const SizedBox(height: 20),
 
+              // Animal condition dropdown
               _buildDropdownField(
                 'How is it now?',
                 _animalCondition,
-                ['Natural Death', 'Dead with Rabies Symptoms', 'Alive with No Symptoms'],
+                ['Natural Death', 'Dead with Rabies Signs', 'Alive with No Signs', 'Unknown'],
                     (value) => setState(() => _animalCondition = value),
               ),
               const SizedBox(height: 20),
 
+              // Date field
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Vaccinated Date: ${lastVaccinatedOn != null ? "${lastVaccinatedOn!.day}/${lastVaccinatedOn!.month}/${lastVaccinatedOn!.year}" : "Not selected"}',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _selectDate(context),
+                    child: Text('Select Date'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Submit button
               ElevatedButton(
                 onPressed: _submitForm,
                 child: const Text(
@@ -352,7 +328,6 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  //side: BorderSide(color: Colors.tealAccent, width: 2),
                 ),
               ),
             ],
@@ -367,102 +342,108 @@ class FirstQuestionPage extends StatefulWidget {
   final Map<String, dynamic> doctor;
   final Map<String, dynamic> victim;
   final Map<String, dynamic> attacker;
+  final Map<String, dynamic> owner;
   final String jwtToken;
 
-  FirstQuestionPage({required this.doctor, required this.victim, required this.attacker, required this.jwtToken});
+  FirstQuestionPage({
+    required this.doctor,
+    required this.victim,
+    required this.attacker,
+    required this.owner,
+    required this.jwtToken,
+  });
 
   @override
   _FirstQuestionPageState createState() => _FirstQuestionPageState();
 }
 
 class _FirstQuestionPageState extends State<FirstQuestionPage> {
-  // Define bools for each checkbox
-  bool woundWashing = false;
-  bool appliedTurmeric = false;
-  bool suturedWound = false;
-  bool appliedOintment = false;
+  // Define the GlobalKey for the form
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   // Variable for vaccination dose dropdown
-  int? vaccinationDose; // Default value of dose to 0
+  int? dose; // Default value of dose to null
+  DateTime? date;
 
   // Function to submit data
   Future<void> _nextQuestion(BuildContext context) async {
-    // Prepare the first aid status as a comma-separated string
-    String firstAidGiven = '';
+    if (_formKey.currentState!.validate()) {
+      // Convert DateTime to a string in 'yyyy-MM-dd' format
+      String? _formattedAttackDate = date != null
+          ? DateFormat('yyyy-MM-dd').format(date!)
+          : null;
 
-    if (woundWashing) firstAidGiven += "Wound washing done, ";
-    if (appliedTurmeric) firstAidGiven += "Applied turmeric/chilli powder on the wound, ";
-    if (suturedWound) firstAidGiven += "Sutured the wound, ";
-    if (appliedOintment) firstAidGiven += "Applied ointment on the wound, ";
+      // Prepare the payload for API request
+      Map<String, dynamic> dataToSend = {
+        "attacker": {
+          "species": widget.attacker['species'].toString(),
+          "age": widget.attacker['age'].toString(),
+          "sex": widget.attacker['sex'].toString(),
+          "breed": widget.attacker['breed'].toString(),
+          "vaccinationStatus": widget.attacker['vaccinationStatus'].toString(),
+          "status": widget.attacker['status'].toString(),
+          "lastVaccinatedOn": widget.attacker['lastVaccinatedOn'] is DateTime
+              ? DateFormat('yyyy-MM-dd').format(widget.attacker['lastVaccinatedOn'])
+              : widget.attacker['lastVaccinatedOn'],
+        },
+        "victim": {
+          "species": widget.victim['species'].toString(),
+          "age": widget.victim['age'].toString(), // Converted age to string
+          "sex": widget.victim['gender'].toString(),
+          "breed": widget.victim['breed'].toString(),
+          "vaccinationStatus": widget.victim['vaccinationStatus'].toString(),
+          "boosterVaccination": widget.victim['boosterVaccination'],
+          "vaccinationDose": dose, // Use the selected dose
+          "biteSite": widget.victim['attackSite'].toString(),
+          "woundCategory": widget.victim['woundCategory'],
+          //"firstAidGiven": widget.victim['firstAidGiven'].toString(), // Converted firstAidGiven to string
+        },
+        "victimOwner": {
+           "name": widget.owner['name'].toString(),
+           "address": widget.owner['address'].toString(),
+           "mobile": widget.owner['mobile'].toString(),
+        },
+        "district": widget.doctor['district'].toString(),
+        "area": widget.victim['area'].toString(), // Converted area to string
+        "doctorId": widget.doctor['doctorId'].toString(),
+        "attackDate": widget.victim['attackDate'] is DateTime
+            ? DateFormat('yyyy-MM-dd').format(widget.victim['attackDate'])
+            : widget.victim['attackDate'].toString(),
+        "dose": dose,
+        "date": _formattedAttackDate,
+      };
 
-    // Remove the trailing comma and space
-    if (firstAidGiven.isNotEmpty) {
-      firstAidGiven = firstAidGiven.substring(0, firstAidGiven.length - 2);
-    }
+      // Print the data as JSON (with double quotes visible)
+      String jsonData = jsonEncode(dataToSend);
+      print(jsonData); // This will show the proper JSON format with double quotes
 
-    // Update victim with the first aid status
-    widget.victim['firstAidGiven'] = firstAidGiven;
-    // Add vaccination dose to the victim if vaccination status is true
-    if (widget.victim['vaccinationStatus'] == 'Vaccinated') {
-      widget.victim['vaccinationDose'] = vaccinationDose;
-    }
-
-    // Prepare the payload for API request
-    // Prepare the payload for API request
-    Map<String, dynamic> dataToSend = {
-      "attacker": {
-        "species": widget.attacker['species'].toString(),
-        "age": widget.attacker['age'].toString(),
-        "sex": widget.attacker['sex'].toString(),
-        "breed": widget.attacker['breed'].toString(),
-        "vaccinationStatus": widget.attacker['vaccinationStatus'].toString(),
-        "condition": widget.attacker['condition'].toString(),
-      },
-      "victim": {
-        "species": widget.victim['species'].toString(),
-        "age": widget.victim['age'].toString(),  // Converted age to string
-        "sex": widget.victim['gender'].toString(),
-        "breed": widget.victim['breed'].toString(),
-        "vaccinationStatus": widget.victim['vaccinationStatus'].toString(),
-        "boosterVaccination": widget.victim['boosterVaccination'],
-        "vaccinationDose": widget.victim['vaccinationDose'],
-        "biteSite": widget.victim['attackSite'].toString(),
-        "woundCategory": widget.victim['woundCategory'],
-        "firstAidGiven": widget.victim['firstAidGiven'].toString(), // Converted firstAidGiven to string
-      },
-      "district": widget.doctor['district'].toString(),
-      "pincode": widget.victim['pincode'], // Converted pincode to string
-      "doctorId": widget.doctor['doctorId'].toString(),
-      "attackDate": widget.victim['attackDate'].toString(),
-    };
-
-    // Print the data as JSON (with double quotes visible)
-    String jsonData = jsonEncode(dataToSend);
-    print(jsonData); // This will show the proper JSON format with double quotes
-
-    // Sending the modified data
-    try {
-      final formattedToken = widget.jwtToken.trim();
-      final url = Uri.parse('https://rabitrack-backend-production.up.railway.app/addNewCase');
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json', 'Cookie': 'jwttoken=${formattedToken}',},
-        body: jsonEncode(dataToSend),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SuccessPage(doctor: widget.doctor, jwtToken: widget.jwtToken),
-          ),
+      // Sending the modified data
+      try {
+        final formattedToken = widget.jwtToken.trim();
+        final url = Uri.parse('https://rabitrack-backend-production.up.railway.app/addNewCase');
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': 'jwttoken=$formattedToken',
+          },
+          body: jsonEncode(dataToSend),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to submit data: ${response.body}')));
-        print(response.body);
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SuccessPage(doctor: widget.doctor, jwtToken: widget.jwtToken),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to submit data: ${response.body}')));
+          print(response.body);
+        }
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error occurred: $error')));
       }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error occurred: $error')));
     }
   }
 
@@ -473,8 +454,8 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
       body: Stack(
         children: [
           // Full-screen background image
-          Image.network(
-            'https://img.freepik.com/free-photo/vertical-shot-grey-cat-with-blue-eyes-dark_181624-34787.jpg?size=626&ext=jpg&ga=GA1.1.1819120589.1728086400&semt=ais_hybrid',
+          Image.asset(
+            'assets/bg.jpeg',
             height: double.infinity,
             width: double.infinity,
             fit: BoxFit.cover,
@@ -489,23 +470,25 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
                   color: Colors.grey[300]?.withOpacity(0.6),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Page title
-                    Text(
-                      'Actions Taken',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                child: Form(
+                  key: _formKey, // Attach the GlobalKey to the form
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Page title
+                      Text(
+                        'Actions Taken',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    // Check if vaccinationStatus is true to show the dropdown
-                    Text(
+                      // Dropdown for number of doses
+                      Text(
                         'Number of doses given?',
                         style: TextStyle(
                           fontSize: 18,
@@ -516,8 +499,8 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
                       const SizedBox(height: 10),
                       DropdownButton<int>(
                         dropdownColor: Colors.grey[700],
-                        value: vaccinationDose,
-                        items: [0, 3, 7, 14, 28].map((int value) {
+                        value: dose,
+                        items: [0, 3, 7, 14, 28, 90].map((int value) {
                           return DropdownMenuItem<int>(
                             value: value,
                             child: Text(
@@ -528,69 +511,75 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
                         }).toList(),
                         onChanged: (int? newValue) {
                           setState(() {
-                            vaccinationDose = newValue ?? 0;
+                            dose = newValue;
                           });
                         },
                       ),
                       const SizedBox(height: 20),
-                    // Four checkboxes for first aid options
-                    CheckboxListTile(
-                      title: Text("Wound washing done", style: TextStyle(color: Colors.white)),
-                      value: woundWashing,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          woundWashing = value ?? false;
-                        });
-                      },
-                    ),
-                    CheckboxListTile(
-                      title: Text("Applied turmeric/chilli powder on the wound", style: TextStyle(color: Colors.white)),
-                      value: appliedTurmeric,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          appliedTurmeric = value ?? false;
-                        });
-                      },
-                    ),
-                    CheckboxListTile(
-                      title: Text("Sutured the wound", style: TextStyle(color: Colors.white)),
-                      value: suturedWound,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          suturedWound = value ?? false;
-                        });
-                      },
-                    ),
-                    CheckboxListTile(
-                      title: Text("Applied any ointment on the wound", style: TextStyle(color: Colors.white)),
-                      value: appliedOintment,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          appliedOintment = value ?? false;
-                        });
-                      },
-                    ),
 
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () => _nextQuestion(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black12,
-                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: Text(
-                        'Submit',
+                      // Date picker for dose date
+                      Text(
+                        'Date doses were given',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () async {
+                          final pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime.now(),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              date = pickedDate;
+                            });
+                          }
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[700],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            date != null
+                                ? "${date!.day}/${date!.month}/${date!.year}"
+                                : "Select Date",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      ElevatedButton(
+                        onPressed: () => _nextQuestion(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black12,
+                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text(
+                          'Submit',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -600,7 +589,6 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
     );
   }
 }
-
 
 
 class SuccessPage extends StatefulWidget {

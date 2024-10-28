@@ -51,6 +51,7 @@ flutter:
     - assets/bg.avif
     - assets/bg1.avif
     - assets/crop.png
+    - assets/bg.jpeg
   # You can add custom fonts to your application here
   fonts:
     - family: Averia Gruesa Libre
