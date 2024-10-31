@@ -1,11 +1,10 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class CaseDetailsPage extends StatefulWidget {
   final String caseId;
-  final String jwtToken; // Add jwtToken as a parameter
+  final String jwtToken;
 
   const CaseDetailsPage({Key? key, required this.caseId, required this.jwtToken}) : super(key: key);
 
@@ -17,6 +16,9 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
   Map<String, dynamic>? caseDetails;
   bool isLoading = true;
   bool hasError = false;
+  final TextEditingController _doseController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  DateTime? _selectedDate;
 
   @override
   void initState() {
@@ -31,20 +33,20 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          'Cookie': 'jwttoken=${widget.jwtToken}', // Include JWT token here
+          'Cookie': 'jwttoken=${widget.jwtToken}',
         },
       );
 
       if (response.statusCode == 200) {
-        if (mounted) { // Check if the widget is still mounted
+        if (mounted) {
           setState(() {
             caseDetails = json.decode(response.body);
+            print("Full backend response: ${caseDetails.toString()}");
             isLoading = false;
-            hasError = false; // Reset error state on successful fetch
+            hasError = false;
           });
         }
       } else {
-        // Handle non-200 status codes
         handleFetchError();
       }
     } catch (e) {
@@ -53,14 +55,12 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
   }
 
   void handleFetchError() {
-    if (mounted) { // Check if the widget is still mounted
+    if (mounted) {
       setState(() {
         hasError = true;
         isLoading = false;
       });
     }
-
-    // Retry fetching after a delay
     Future.delayed(Duration(seconds: 2), () {
       fetchCaseDetails();
     });
@@ -73,29 +73,77 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
       final response = await http.delete(
         Uri.parse(url),
         headers: {
-          'Cookie': 'jwttoken=${widget.jwtToken}', // Include JWT token here
+          'Cookie': 'jwttoken=${widget.jwtToken}',
         },
       );
 
       if (response.statusCode == 200) {
-        // Case deleted successfully
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Case deleted successfully')),
         );
-        Navigator.pop(context, true); // Pass true to indicate deletion
+        Navigator.pop(context, true);
       } else {
-        // Handle error case here
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to delete case')),
         );
       }
     } catch (e) {
-      // Handle exceptions here
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error occurred while deleting case')),
       );
     }
   }
+
+  Future<void> updateDose() async {
+    final url = 'https://rabitrack-backend-production.up.railway.app/updateDoses/${widget.caseId}';
+    final dose = int.tryParse(_doseController.text);
+    final doseDate = _dateController.text;
+
+    if (dose == null || doseDate.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter valid dose and date')),
+      );
+      return;
+    }
+
+    final data = json.encode({
+      'dose': dose,
+      'doseDate': doseDate,
+    });
+
+    try {
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'jwttoken=${widget.jwtToken}',
+        },
+        body: data,
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Dose updated successfully')),
+        );
+        setState(() {
+          caseDetails?['doseDetails'] = [];  // Clear existing dose details
+        });
+        await fetchCaseDetails(); // Refresh the case details
+        _doseController.clear(); // Clear the text fields
+        _dateController.clear();
+      } else {
+        print('Failed to update dose: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update dose')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error occurred while updating dose')),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +160,12 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : hasError
-          ? Center(child: Text('Failed to load case details. Retrying...', style: TextStyle(color: Colors.red)))
+          ? Center(
+        child: Text(
+          'Failed to load case details. Retrying...',
+          style: TextStyle(color: Colors.red),
+        ),
+      )
           : caseDetails != null
           ? SingleChildScrollView(
         child: Padding(
@@ -121,20 +174,31 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               buildSectionHeader('Attacker Details'),
-              buildDetailCard(caseDetails!['attacker'], true),
+              buildDetailCard(caseDetails!['attacker']),
               SizedBox(height: 24),
               buildSectionHeader('Victim Details'),
-              buildDetailCard(caseDetails!['victim'], false),
-              SizedBox(height: 100), // Extra space at the bottom for scrolling
+              buildDetailCard(caseDetails!['victim']),
+              SizedBox(height: 24),
+              buildSectionHeader('Owner Details'),
+              buildDetailCard(caseDetails!['owner']),
+              SizedBox(height: 24),
+              buildSectionHeader('Doctor Details'),
+              buildDetailCard(caseDetails!['doctor']),
+              SizedBox(height: 24),
+              buildSectionHeader('Dose Details'),
+              buildDoseDetails(caseDetails!['doseDetails']),
+              buildInfoRow('District', caseDetails!['district']),
+              SizedBox(height: 24),
+              buildSectionHeader('Update Dose'),
+              buildUpdateDoseButton(),
             ],
           ),
         ),
       )
           : Center(child: Text('No details available')),
-      floatingActionButton: caseDetails != null // Only show delete button when details are available
+      floatingActionButton: caseDetails != null
           ? FloatingActionButton(
         onPressed: () {
-          // Show confirmation dialog before deletion
           showDialog(
             context: context,
             builder: (context) {
@@ -144,14 +208,14 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop(); // Dismiss the dialog
+                      Navigator.of(context).pop();
                     },
                     child: Text('Cancel'),
                   ),
                   TextButton(
                     onPressed: () {
-                      deleteCase(); // Call delete function
-                      Navigator.of(context).pop(); // Dismiss the dialog
+                      deleteCase();
+                      Navigator.of(context).pop();
                     },
                     child: Text('Delete', style: TextStyle(color: Colors.red)),
                   ),
@@ -163,7 +227,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
         backgroundColor: Colors.red,
         child: Icon(Icons.delete),
       )
-          : null, // No button if details are not loaded
+          : null,
     );
   }
 
@@ -178,7 +242,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
     );
   }
 
-  Widget buildDetailCard(Map<String, dynamic>? details, bool isAttacker) {
+  Widget buildDetailCard(Map<String, dynamic>? details) {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -195,28 +259,24 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildInfoRow('Species', details?['species']),
-          buildInfoRow('Sex', details?['sex'] == 'M' ? 'Male' : details?['sex'] == 'F' ? 'Female' : 'N/A'),
-          buildInfoRow('Breed', details?['breed']),
-          buildInfoRow('Vaccination Status', details?['vaccination_status'] == 1 ? 'Yes' : 'No'),
-          if (isAttacker) ...[
-            buildMultilineInfoRow('Attacker Condition', details?['attacker_condition']),
-            buildInfoRow('Attack Area', caseDetails!['pincode']),
-            buildInfoRow('District', caseDetails!['district']),
-          ],
-          if (!isAttacker) ...[
-            buildInfoRow('Vaccination Dose', details?['vaccination_dose']?.toString() ?? 'N/A'),
-            buildInfoRow('Site of Bite', details?['site_of_bite'] ?? 'N/A'),
-            buildInfoRow('Wound Category', details?['wound_category']?.toString() ?? 'N/A'),
-            buildInfoRow('First Aid Status', details?['first_aid_status'] == 1 ? 'Yes' : 'No'),
-          ],
-        ],
+        children: details?.entries.map((entry) => buildInfoRow(entry.key, entry.value))?.toList() ?? [],
       ),
     );
   }
 
-  // For regular info rows
+  Widget buildDoseDetails(List<dynamic> doseDetails) {
+    return Column(
+      children: doseDetails.map((dose) {
+        return Column(
+          children: [
+            buildInfoRow('Dose', dose['dose'] ?? 'N/A'),
+            buildInfoRow('Dose Date', dose['doseDate'] ?? 'N/A'),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
   Widget buildInfoRow(String label, dynamic value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -241,28 +301,79 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
     );
   }
 
-  // For multiline text fields like "Attacker Condition"
-  Widget buildMultilineInfoRow(String label, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              '$label:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+  Widget buildUpdateDoseButton() {
+    return ElevatedButton(
+      onPressed: () {
+        _showUpdateDoseDialog();
+      },
+      child: Text('Update Dose Details'),
+      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+    );
+  }
+
+  Future<void> _showUpdateDoseDialog() {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Update Dose Details'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                TextField(
+                  controller: _doseController,
+                  decoration: InputDecoration(
+                    labelText: 'Dose',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null && picked != _selectedDate) {
+                      setState(() {
+                        _selectedDate = picked;
+                        _dateController.text = "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}";
+                      });
+                    }
+                  },
+                  child: AbsorbPointer(
+                    child: TextField(
+                      controller: _dateController,
+                      decoration: InputDecoration(
+                        labelText: 'Date (yyyy-MM-dd)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          Expanded(
-            child: Text(
-              value != null ? value.toString() : 'N/A',
-              style: TextStyle(fontSize: 18),
-              textAlign: TextAlign.end,
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
-          ),
-        ],
-      ),
+            TextButton(
+              child: Text('Update'),
+              onPressed: () {
+                updateDose();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

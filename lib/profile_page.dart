@@ -98,8 +98,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: Text('Log Out', style: TextStyle(fontSize: 20)),
                   onTap: () async {
                     final prefs = await SharedPreferences.getInstance();
-                    await prefs.remove('jwtToken');
-                    final token = prefs.getString('jwtToken');
+                    await prefs.remove('jwttoken');
+                    final token = prefs.getString('jwttoken');
                     print('Token after removal: $token');
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Logged out')),

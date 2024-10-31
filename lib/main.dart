@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:flutter/services.dart';
 import 'package:RABI_TRACK/home.dart'; // Import your HomePage
 import 'package:RABI_TRACK/profile_page.dart'; // Import your ProfilePage
 import 'package:RABI_TRACK/statistics.dart'; // Import your StatisticsPage
@@ -26,7 +26,7 @@ class RabitrackRiverApp extends StatelessWidget {
           bodyMedium: TextStyle(color: Colors.black),
         ),
       ),
-      initialRoute: '/login',
+      home: SplashScreen(),
       routes: {
         '/login': (context) => const LoginPage(),
         '/home': (context) => HomePage(),
@@ -43,7 +43,57 @@ class RabitrackRiverApp extends StatelessWidget {
     );
   }
 }
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
 
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    checkAuthentication();
+  }
+
+  Future<void> checkAuthentication() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwttoken');
+    final doctorId = prefs.getString('doctorId');
+    final doctorName = prefs.getString('doctorName');
+    final area = prefs.getString('area');
+    final district = prefs.getString('district');
+
+    if (token != null && token.isNotEmpty) {
+      // Token and data exist, navigate to Home Page with required arguments
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+          settings: RouteSettings(
+            arguments: {
+              'doctorName': doctorName,
+              'doctorId': doctorId,
+              'area': area,
+              'district': district,
+              'jwtToken': token, // Pass the trimmed token
+            },
+          ),
+        ),
+      );
+    } else {
+      // No token, navigate to Login Page
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -61,6 +111,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   final TextEditingController nameController = TextEditingController();
   final TextEditingController regNoController = TextEditingController();
   final TextEditingController areaController = TextEditingController();
+  final TextEditingController mobileController = TextEditingController();
+
+
+
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -285,8 +339,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       final data = json.decode(response.body);
                       if (data['isAuth'] == true) {
                         // Extract and trim the JWT token
+                        SharedPreferences prefs = await SharedPreferences.getInstance();
                         String token = response.headers['set-cookie']?.split('=')[1]?.split(';')[0].trim() ?? '';
-                        await prefs.setString('jwttoken', token); // Store trimmed token
+                        await prefs.setString('jwttoken', token);
+                        await prefs.setString('doctorId', data['doctor_id']);
+                        await prefs.setString('doctorName', data['doctor_name']);
+                        await prefs.setString('area', data['area']);
+                        await prefs.setString('district', data['district']);// Store trimmed token
 
                         // Navigate to HomePage with the JWT token
                         Navigator.of(context).pushReplacement(
@@ -418,6 +477,33 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           readOnly: true, // Prevent manual input
         ),
         const SizedBox(height: 20),
+        TextFormField(
+          controller: mobileController,
+          decoration: InputDecoration(
+            labelText: 'Mobile Number',
+            labelStyle: const TextStyle(color: Colors.white),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.7),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          style: const TextStyle(color: Colors.black),
+          keyboardType: TextInputType.phone,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+          ],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your mobile number';
+            } else if (value.length != 10) {
+              return 'Mobile number must be exactly 10 digits';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 20),
         // Work Type Dropdown
         // Working In Field
         DropdownButtonFormField<String>(
@@ -494,6 +580,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             final String area = areaController.text.trim();
             final doctorId = regNoController.text.trim();
             final String dob = dobController.text.trim();
+            final String mobile = mobileController.text.trim();
+
             // Check for empty fields
             if (name.isEmpty || regNo.isEmpty || dob.isEmpty|| area.isEmpty || workType == null || workDistrict == null) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -524,6 +612,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 'workingIn': workType,
                 'district': workDistrict,
                 'area': area,
+                'mobile': mobile,
               };
 
               print('Sending request to $url with data: $data');
