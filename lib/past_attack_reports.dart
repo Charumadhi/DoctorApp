@@ -17,8 +17,9 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
   List<dynamic> attackReports = [];
   List<dynamic> filteredReports = [];
   bool isLoading = true;
-  String? errorMessage; // Variable to hold error messages
-  DateTime? selectedDate; // Variable to hold the selected date
+  bool isFilterEnabled = false; // Flag to control the display of the filter button
+  String? errorMessage;
+  DateTime? selectedDate;
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          'Cookie': 'jwttoken=${formattedToken}', // Include the jwtToken in the headers
+          'Cookie': 'jwttoken=${formattedToken}',
         },
       );
 
@@ -43,9 +44,11 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
         final List<dynamic> decodedResponse = json.decode(response.body);
         setState(() {
           attackReports = decodedResponse;
-          filteredReports = decodedResponse; // Initialize filtered reports with all reports
-          errorMessage = null; // Clear error if reports exist
+          filteredReports = decodedResponse;
+
+          errorMessage = null;
           isLoading = false;
+          isFilterEnabled = true; // Enable filter only if the response is successful
         });
       } else if (response.statusCode == 404) {
         setState(() {
@@ -78,7 +81,7 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
       context: context,
       initialDate: selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      lastDate: DateTime.now(),
     );
     if (picked != null && picked != selectedDate) {
       setState(() {
@@ -89,10 +92,16 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
   }
 
   void _filterReportsByDate(DateTime date) {
-    String formattedDate = "${date.day}-${date.month}-${date.year}"; // Format as dd-MM-yyyy
+    String formattedDate = "${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}";  // Format as dd-MM-yyyy
     setState(() {
-      // Filter reports by the selected date
       filteredReports = attackReports.where((report) => report['attack_date'] == formattedDate).toList();
+    });
+  }
+
+  void _resetFilter() {
+    setState(() {
+      filteredReports = attackReports; // Reset to all reports
+      selectedDate = null; // Clear selected date
     });
   }
 
@@ -109,7 +118,6 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
       ),
       body: Column(
         children: [
-          // Top container with curved corners
           Container(
             height: 140,
             decoration: BoxDecoration(
@@ -131,18 +139,38 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () => _selectDate(context),
-              child: Text(
-                selectedDate == null
-                    ? 'Filter by Date'
-                    : 'Selected Date: ${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}',
-              ),
+        if (isFilterEnabled)
+    // Display the filter button only if the filter is enabled
+    Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          ElevatedButton(
+            onPressed: () => _selectDate(context),
+            child: Text(
+              selectedDate == null
+                  ? 'Filter by Date'
+                  : 'Selected Date: ${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}',
             ),
           ),
-          Expanded(
+          if (selectedDate != null) // Show Reset button only if a date is selected
+            SizedBox(width: 10), // Spacing between buttons
+          if (selectedDate != null)
+            ElevatedButton(
+              onPressed: _resetFilter,
+              child: Text(
+                'Reset',
+                style: TextStyle(fontSize: 12), // Smaller font size
+              ),
+
+            ),
+        ],
+      ),
+    ),
+
+
+    Expanded(
             child: isLoading
                 ? Center(child: CircularProgressIndicator())
                 : errorMessage != null

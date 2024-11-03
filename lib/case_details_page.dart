@@ -19,6 +19,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
   final TextEditingController _doseController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   DateTime? _selectedDate;
+  int? _selectedDose;
 
   @override
   void initState() {
@@ -96,7 +97,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
 
   Future<void> updateDose() async {
     final url = 'https://rabitrack-backend-production.up.railway.app/updateDoses/${widget.caseId}';
-    final dose = int.tryParse(_doseController.text);
+    final dose = _selectedDose;
     final doseDate = _dateController.text;
 
     if (dose == null || doseDate.isEmpty) {
@@ -144,7 +145,6 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,10 +171,11 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Column(
+            mainAxisSize: MainAxisSize.min, // Add this line
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               buildSectionHeader('Attacker Details'),
-              buildDetailCard(caseDetails!['attacker']),
+              buildDetailCard(caseDetails!['attacker'],includeAttackArea: true),
               SizedBox(height: 24),
               buildSectionHeader('Victim Details'),
               buildDetailCard(caseDetails!['victim']),
@@ -182,15 +183,11 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
               buildSectionHeader('Owner Details'),
               buildDetailCard(caseDetails!['owner']),
               SizedBox(height: 24),
-              buildSectionHeader('Doctor Details'),
-              buildDetailCard(caseDetails!['doctor']),
+              buildDoseSection(),
+
               SizedBox(height: 24),
-              buildSectionHeader('Dose Details'),
-              buildDoseDetails(caseDetails!['doseDetails']),
-              buildInfoRow('District', caseDetails!['district']),
-              SizedBox(height: 24),
-              buildSectionHeader('Update Dose'),
-              buildUpdateDoseButton(),
+
+              SizedBox(height: 40), // Ensure there's extra space at the bottom
             ],
           ),
         ),
@@ -241,8 +238,39 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
       ),
     );
   }
+  Widget buildDoseSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildSectionHeader('Dose Details'),
+        const SizedBox(height: 10), // Add some spacing between the header and the button
+        ElevatedButton(
+          onPressed: _showUpdateDoseDialog,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueAccent, // Background color
+            foregroundColor: Colors.white, // Text color // Text color
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Padding
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10), // Rounded corners
+            ),
+            elevation: 5, // Elevation for shadow
+          ),
+          child: Text(
+            'Update Dose',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 10), // Add spacing after the button
+        buildDoseDetails(caseDetails!['doseDetails']),
+      ],
+    );
+  }
 
-  Widget buildDetailCard(Map<String, dynamic>? details) {
+  Widget buildDetailCard(Map<String, dynamic>? details, {bool includeAttackArea = false}) {
+    details?.forEach((key, value) {
+      print('$key: $value'); // This will print each key and its value
+    });
+
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -259,117 +287,154 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: details?.entries.map((entry) => buildInfoRow(entry.key, entry.value))?.toList() ?? [],
-      ),
-    );
-  }
-
-  Widget buildDoseDetails(List<dynamic> doseDetails) {
-    return Column(
-      children: doseDetails.map((dose) {
-        return Column(
-          children: [
-            buildInfoRow('Dose', dose['dose'] ?? 'N/A'),
-            buildInfoRow('Dose Date', dose['doseDate'] ?? 'N/A'),
-          ],
-        );
-      }).toList(),
-    );
-  }
-
-  Widget buildInfoRow(String label, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Text(
-              '$label:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value != null ? value.toString() : 'N/A',
-              style: TextStyle(fontSize: 18),
-              textAlign: TextAlign.end,
-            ),
-          ),
+          if (includeAttackArea) buildInfoRow('Attack area', caseDetails!['district'] ?? 'Unknown'),
+          ...details?.entries.map((entry) {
+            if (entry.key == 'attacker_id' || entry.key == 'victim_id') {
+              return SizedBox.shrink(); // Exclude specific keys if needed
+            }
+            // Handle null or empty values
+            String displayValue = (entry.value == null || entry.value.toString().isEmpty||entry.value.toString().toLowerCase() == 'null')
+                ? 'Unknown'
+                : entry.value.toString();
+
+            // Map specific values for better readability
+            if (entry.key == 'sex') {
+              displayValue = _mapSex(entry.value) ?? 'Unknown';
+            }
+            if (entry.key == 'is_pet') {
+              displayValue = entry.value == 1 ? 'Yes' : 'No';
+            }
+
+
+            return buildInfoRow(entry.key.replaceAll('_', ' '), displayValue);
+          }).toList() ?? [],
+
         ],
       ),
     );
   }
 
-  Widget buildUpdateDoseButton() {
-    return ElevatedButton(
-      onPressed: () {
-        _showUpdateDoseDialog();
-      },
-      child: Text('Update Dose Details'),
-      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+  String _mapSex(String? sex) {
+    switch (sex) {
+      case 'M':
+        return 'Male';
+      case 'F':
+        return 'Female';
+      case 'Unknown':
+        return 'Unknown';
+      default:
+        return 'Not Specified';
+    }
+  }
+  Widget buildDoseDetails(List<dynamic> doseDetails) {
+    return Column(
+      children: doseDetails.map((dose) {
+        return Container(
+          margin: EdgeInsets.only(bottom: 16.0),
+          padding: EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 6,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildInfoRow('Dose', dose['dose']),
+              buildInfoRow('Date', dose['dose_date']),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
-  Future<void> _showUpdateDoseDialog() {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Update Dose Details'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                TextField(
-                  controller: _doseController,
-                  decoration: InputDecoration(
-                    labelText: 'Dose',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () async {
-                    final DateTime? picked = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate ?? DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime.now(),
-                    );
-                    if (picked != null && picked != _selectedDate) {
-                      setState(() {
-                        _selectedDate = picked;
-                        _dateController.text = "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}";
-                      });
-                    }
-                  },
-                  child: AbsorbPointer(
-                    child: TextField(
-                      controller: _dateController,
-                      decoration: InputDecoration(
-                        labelText: 'Date (yyyy-MM-dd)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+  Widget buildInfoRow(String title, dynamic value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          actions: <Widget>[
+          Text(value.toString()),
+        ],
+      ),
+    );
+  }
+
+  void _showUpdateDoseDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Update Dose'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<int>(
+                value: _selectedDose, // This should be an int variable to store the selected value
+                items: [0, 3, 7, 14, 28, 90].map((int dose) {
+                  return DropdownMenuItem<int>(
+                    value: dose,
+                    child: Text(dose.toString()), // Convert int to string for display
+                  );
+                }).toList(),
+                onChanged: (int? newValue) {
+                  setState(() {
+                    _selectedDose = newValue; // Update the selected dose
+                  });
+                },
+                decoration: InputDecoration(
+                  labelText: 'Dose',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.9),
+                ),
+              ),
+              TextField(
+                controller: _dateController,
+                decoration: InputDecoration(labelText: 'Date (yyyy-MM-dd)'),
+                onTap: () async {
+                  FocusScope.of(context).requestFocus(FocusNode());
+                  _selectedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
+                  );
+                  if (_selectedDate != null) {
+                    _dateController.text = '${_selectedDate!.year}-${_selectedDate!.month}-${_selectedDate!.day}';
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
             TextButton(
-              child: Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              child: Text('Cancel'),
             ),
             TextButton(
-              child: Text('Update'),
               onPressed: () {
                 updateDose();
                 Navigator.of(context).pop();
               },
+              child: Text('Update'),
             ),
           ],
         );

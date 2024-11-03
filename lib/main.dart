@@ -216,11 +216,25 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                           isLogin = !isLogin;
                         });
                       },
-                      child: Text(
-                        isLogin ? 'New User? Register Here' : 'Already a User? Login Here',
-                        style: const TextStyle(color: Colors.white),
+                      child: RichText(
+                        text: TextSpan(
+                          text: isLogin ? 'New User? ' : 'Already a User? ',
+                          style: const TextStyle(color: Colors.white, fontSize: 16),
+                          children: [
+                            TextSpan(
+                              text: isLogin ? 'Register Here' : 'Login Here',
+                              style: TextStyle(
+                                color: Color(0xFFFFD700), // A soft gold for a premium look
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline, // Adds a touch of emphasis
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+
+
 
                     const SizedBox(height: 20),
 
@@ -635,11 +649,22 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   'doctorId': regNo,
                 };
 
-                Navigator.pushNamed(
-                  context,
-                  '/login',
-                  arguments: arguments,
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Registration successful! Redirecting to login...'),
+                    backgroundColor: Colors.green, // Success color
+                    duration: Duration(seconds: 2),
+                  ),
                 );
+
+                // Delay navigation to allow users to see the message
+                Future.delayed(Duration(seconds: 2), () {
+                  Navigator.pushNamed(
+                    context,
+                    '/login',
+                    arguments: arguments,
+                  );
+                });
               } else if (response.statusCode == 409 && responseBody['error'] == "doctor with the given ID is already registered") {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Doctor with the given ID is already registered.')),

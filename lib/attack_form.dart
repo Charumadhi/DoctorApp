@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:flutter/services.dart';
 import 'attacker_details.dart';
 import 'profile_page.dart';
 
@@ -29,7 +29,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
   String? _area;
   String? _species;
   String? _breed;
-  String? _age; // tinyint in the backend
+  String? _age=''; // tinyint in the backend
   String? _gender; // char in the backend
   String? _attackSite;
   String? _woundCategory; // smallint in the backend
@@ -37,15 +37,39 @@ class _AttackFormPageState extends State<AttackFormPage> {
   bool? _boosterVaccination = null;  // No selection by default (nullable)
   //int? _pincode; // int in the backend
   String? _breedDescription;
+  String? _speciesDescription;
   String? _district;
   String? name;
   String? address;
   String? mobile;
+  String? _woundSeverity;
+  DateTime? lastVaccinatedOn;
 
 
   final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _woundController = TextEditingController(); // For manual input of wound category
+  final TextEditingController _woundController = TextEditingController();
+  // For manual input of wound category
+  final TextEditingController _yearsController = TextEditingController();
+  final TextEditingController _monthsController = TextEditingController();
 
+  void _updateAge() {
+    String years = _yearsController.text;
+    String months = _monthsController.text;
+
+    // Concatenate years and months
+    if (years.isNotEmpty && months.isNotEmpty) {
+      _age = '$years years $months months';
+    } else if (years.isNotEmpty) {
+      _age = '$years years';
+    } else if (months.isNotEmpty) {
+      _age = '$months months';
+    } else {
+      _age = ''; // Reset if both fields are empty
+    }
+
+    // Debugging: print the age
+    print('Concatenated Age: $_age');
+  }
   @override
   void dispose() {
     _dateController.dispose();
@@ -81,6 +105,21 @@ class _AttackFormPageState extends State<AttackFormPage> {
     }
   }
 
+
+  void _selectVaccinatedDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != lastVaccinatedOn) {
+      setState(() {
+        lastVaccinatedOn = picked;
+      });
+    }
+  }
+
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       // Convert DateTime to a string in 'yyyy-MM-dd' format
@@ -88,19 +127,26 @@ class _AttackFormPageState extends State<AttackFormPage> {
           ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
           : null;
 
+
       // Create a map to store the victim details
       Map<String, dynamic> victim = {
         'attackDate': _formattedAttackDate,
         'area': _area,
-        'species': _species,
-        'breed': _breed,
+        'species': _species == 'Non-Descript (specify)'
+            ? 'Non-Descript: $_speciesDescription'
+            : _species,
+        'breed': _breed == 'Non-Descript (specify)'
+            ? 'Non-Descript: $_breedDescription'
+            : _breed,
         'age': _age,
-        'gender': _gender,
+        'gender': _gender == 'Unknown' ? null : _gender,
         'attackSite': _attackSite,
         'woundCategory': _woundCategory,
+        'woundSeverity': _woundSeverity,
         'vaccinationStatus': _vaccinationStatus,
         'boosterVaccination': _boosterVaccination,
         'district': _district,
+        'lastVaccinatedOn': lastVaccinatedOn, // Store the vaccinated date
       };
 
 
@@ -202,8 +248,9 @@ class _AttackFormPageState extends State<AttackFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Attack', style: TextStyle(color: Colors.white)), // Ensure color is consistent
-        backgroundColor: Colors.blue,
+        title: const Text('Victim', style: TextStyle(color: Colors.white)), // Title color
+        backgroundColor: Colors.blue, // App bar background color
+        iconTheme: const IconThemeData(color: Colors.white), // Back button color
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
@@ -229,7 +276,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                 const SizedBox(height: 20),
                 _buildDateField(context),
                 const SizedBox(height: 20),
-                _buildDropdownField('District', _district, ['Puducherry', 'Karaikal', 'Mahe', 'Yanam'], (value) {
+                _buildDropdownField('District', _district, ['Puducherry', 'Karaikal', 'Mahe', 'Yanam', 'Tamil Nadu'], (value) {
                   setState(() {
                     _district = value;
                   });
@@ -257,21 +304,54 @@ class _AttackFormPageState extends State<AttackFormPage> {
                     fillColor: Colors.white.withOpacity(0.9),
                   ),
                   value: _species,
-                  items: ['Dog', 'Cat', 'Goat', 'Cattle', 'Poultry', 'Sheep', 'Unknown']
-                      .map((species) => DropdownMenuItem<String>(
+                  items: [
+                    'Dog', 'Cat', 'Goat', 'Cattle', 'Poultry', 'Sheep', 'Non-Descript (specify)'
+                  ].map((species) => DropdownMenuItem<String>(
                     value: species,
                     child: Text(species),
-                  ))
-                      .toList(),
+                  )).toList(),
                   onChanged: (value) {
                     setState(() {
                       _species = value!;
+                      // Clear species description if not Non-Descript
+                      if (_species != 'Non-Descript (specify)') {
+                        _speciesDescription = '';
+                      }
                     });
                   },
-                  hint: Text('Select species'),
+                  hint: Text('Select species type'),
                 ),
-                const SizedBox(height: 20),
-                DropdownButtonFormField<String>(
+
+// Only show the text field if Non-Descript is selected
+                if (_species == 'Non-Descript (specify)')
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Specify the species',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.9),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _speciesDescription = value;
+
+                        });
+                      },
+                      validator: (value) {
+                        if (_species == 'Non-Descript (specify)' && (value == null || value.isEmpty)) {
+                          return 'Please specify the species';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+
+
+                const SizedBox(height: 20),DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'What kind of breed is it?',
                     border: OutlineInputBorder(
@@ -301,107 +381,129 @@ class _AttackFormPageState extends State<AttackFormPage> {
 
                 if (_breed == 'Non-Descript (specify)')
                   Padding(
-                      padding: const EdgeInsets.only(top: 10.0), // Add spacing
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Specify the breed',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.9),
+                    padding: const EdgeInsets.only(top: 10.0), // Add spacing
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Specify the breed',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        onChanged: (value) {
-                          setState(() {
-                            _breedDescription = value;
-                            // Combine both the selection and specified breed into _breed
-                            _breed = 'Non-Descript (specify): $_breedDescription';
-                          });
-                        },
-                        validator: (value) {
-                          if (_breed == 'Non-Descript (specify)' &&
-                              (value == null || value.isEmpty)) {
-                            return 'Please specify the breed';
-                          }
-                          return null;
-                        },
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.9),
                       ),
+                      onChanged: (value) {
+                        setState(() {
+                          _breedDescription = value;
+                          // Combine both the selection and specified breed into _breed
+
+                        });
+                      },
+                      validator: (value) {
+                        if (_breed == 'Non-Descript (specify)' &&
+                            (value == null || value.isEmpty)) {
+                          return 'Please specify the breed';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
+                const SizedBox(height: 20),
+                Text(
+                  'Age: $_age', // Display the concatenated age
+                  style: TextStyle(fontSize: 18),
+                ),
+
+
+
 
                 const SizedBox(height: 20),
-                _buildTextField(
-                  'How old is that species?',
-                  null,
-                  'Enter age',
-                      (value) {
-                    setState(() {
-                      _age = value;
-                    });
-                  },
-                  //keyboardType: TextInputType.number,
+                TextField(
+                  controller: _yearsController,
+                  decoration: InputDecoration(
+                    labelText: 'Years',
+                    hintText: 'Enter years',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) => _updateAge(),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _monthsController,
+                  decoration: InputDecoration(
+                    labelText: 'Months',
+                    hintText: 'Enter months',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) => _updateAge(),
                 ),
                 const SizedBox(height: 20),
+                // Display concatenated age directly
+
                 _buildDropdownField(
                   'What gender is it?',
-                  _gender ,['M', 'F', 'Unknown'],
+                  _gender,
+                  ['M', 'F', 'Unknown'],
                       (value) {
                     setState(() {
-                      _gender = value; // Store 'Unknown' if no value is selected
+                      // Store 'Unknown' as null in _gender
+                      _gender = value;
                     });
                   },
                 ),
                 const SizedBox(height: 20),
-                _buildDropdownField('Bite Site', _attackSite, ['Extremities of body', 'Hip region', 'chest region', 'neck and above', 'Head', 'Trunk', 'Forelimb', 'Hindlimb'], (value) {
+                _buildDropdownField('Bite Site', _attackSite, ['Head', 'Trunk', 'Forelimb', 'Hindlimb'], (value) {
                   setState(() {
                     _attackSite = value;
                   });
                 }),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
-                      value: _woundCategory,  // Remain null until user selection
-                      items: ['Severe', 'Moderate', 'Mild']
-                         .map((woundSeverity) => DropdownMenuItem<String>(
-                      value: woundSeverity,
-                      child: Text(woundSeverity),
+                  value: _woundCategory,  // Remain null until user selection
+                  items: ['1', '2', '3','4']
+                      .map((woundSeverity) => DropdownMenuItem<String>(
+                    value: woundSeverity,
+                    child: Text(woundSeverity),
                   )).toList(),
                   onChanged: (value) {
-                      setState(() {
-                        _woundCategory = value;  // Store selected value as a string
-                      });
-                  },
-                  decoration: InputDecoration(
-                      labelText: 'Wound Category',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.9),
-                  ),
-               ),
-                const SizedBox(height: 20),
-                DropdownButtonFormField<String>(
-                  value: _vaccinationStatus,
-                  items: [
-                    DropdownMenuItem<String>(
-                      value: 'Vaccinated',
-                      child: Text('Vaccinated'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'Not Vaccinated',
-                      child: Text('Not Vaccinated'),
-                    ),
-                    DropdownMenuItem<String>(
-                      value: 'Not Known',
-                      child: Text('Not Known'),
-                    ),
-                  ],
-                  onChanged: (String? value) {
                     setState(() {
-                      _vaccinationStatus = value; // Store the selected string directly
+                      _woundCategory = value;  // Store selected value as a string
                     });
                   },
                   decoration: InputDecoration(
-                    labelText: 'Vaccination Status',
+                    labelText: 'Wound Category',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  value: _woundSeverity,  // Remain null until user selection
+                  items: ['Severe', 'Moderate', 'Mild']
+                      .map((woundSeverity) => DropdownMenuItem<String>(
+                    value: woundSeverity,
+                    child: Text(woundSeverity),
+                  )).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _woundSeverity = value;  // Store selected value as a string
+                    });
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Wound Severity',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
@@ -410,15 +512,46 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Conditionally show the text field if the vaccination status is true
-                if (_vaccinationStatus == 'Vaccinated')
+    DropdownButtonFormField<String>(
+    value: _vaccinationStatus,
+    items: [
+    DropdownMenuItem<String>(
+    value: 'Vaccinated',
+    child: Text('Vaccinated'),
+    ),
+    DropdownMenuItem<String>(
+    value: 'Not Vaccinated',
+    child: Text('Not Vaccinated'),
+    ),
+    DropdownMenuItem<String>(
+    value: 'Not Known',
+    child: Text('Not Known'),
+    ),
+    ],
+    onChanged: (String? value) {
+    setState(() {
+    _vaccinationStatus = value;
+    if (_vaccinationStatus != 'Vaccinated') {
+    lastVaccinatedOn = null; // Reset the date if not vaccinated
+    }
+    });
+    },
+    decoration: InputDecoration(
+    labelText: 'Vaccination Status',
+    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(15),
+    ),
+    filled: true,
+    fillColor: Colors.white.withOpacity(0.9),
+    ),
+    ),
+    const SizedBox(height: 20),
+
+                if (_vaccinationStatus == 'Vaccinated') ...[
+                  // Booster Vaccination Dropdown
                   DropdownButtonFormField<String>(
-                    value: _boosterVaccination == null ? null : (_boosterVaccination == true ? 'Taken' : 'Not Taken'),  // Map boolean to string or null
+                    value: _boosterVaccination == null ? null : (_boosterVaccination == true ? 'Taken' : 'Not Taken'),
                     items: [
-                      // DropdownMenuItem<String>(
-                      //   value: null,  // Placeholder value
-                      //   child: Text('Select Vaccination Status'),  // Placeholder text
-                      // ),
                       DropdownMenuItem<String>(
                         value: 'Taken',
                         child: Text('Taken'),
@@ -430,16 +563,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                     ],
                     onChanged: (String? value) {
                       setState(() {
-                        if (value == null) {
-                          _boosterVaccination = null;  // Reset to null if placeholder is selected
-                        } else if (value == 'Taken') {
-                          _boosterVaccination = true;  // Set boolean based on string
-                        } else if (value == 'Not Taken') {
-                          _boosterVaccination = false;
-                        } else  {
-                          _boosterVaccination = null;
-                        }
-
+                        _boosterVaccination = value == 'Taken';
                       });
                     },
                     decoration: InputDecoration(
@@ -449,10 +573,62 @@ class _AttackFormPageState extends State<AttackFormPage> {
                       ),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.9),
-
                     ),
                   ),
+                  const SizedBox(height: 20),
 
+                  // Styled Vaccination Date Selection
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Vaccinated Date: ${lastVaccinatedOn != null ? "${lastVaccinatedOn!.day}/${lastVaccinatedOn!.month}/${lastVaccinatedOn!.year}" : "Not selected"}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () => _selectVaccinatedDate(context),
+                          icon: Icon(
+                            Icons.calendar_today,
+                            size: 18,
+                            color: Colors.white, // Set icon color to white
+                          ),
+                          label: Text(
+                            'Select Date',
+                            style: TextStyle(color: Colors.white), // Set text color to white
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent, // Custom background color
+                            foregroundColor: Colors.white, // Ensures white text and icon by default
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 _buildTextField(
                   'Name of the owner',
@@ -487,8 +663,15 @@ class _AttackFormPageState extends State<AttackFormPage> {
                       mobile = value;
                     });
                   },
-                  //keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value != null && value.length != 10) {
+                      return 'Enter a valid mobile number';
+                    }
+                    return null; // Valid input
+                  },
                 ),
+                const SizedBox(height: 20),
                 // _buildTextField(
                 //   'Enter your pincode',
                 //   null,
@@ -512,6 +695,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   ),
                 ),
               ],
+
             ),
           ),
         ),
@@ -526,6 +710,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
       String hint,
       ValueChanged<String> onChanged, {
         TextInputType keyboardType = TextInputType.text,
+        String? Function(String?)? validator,
       }) {
     return TextFormField(
       initialValue: initialValue,
@@ -540,12 +725,17 @@ class _AttackFormPageState extends State<AttackFormPage> {
       ),
       onChanged: onChanged,
       keyboardType: keyboardType,
-      validator: (value) {
+      validator: validator ?? (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter $label';
         }
-        return null;
+        return null; // Valid input
       },
+      maxLength: keyboardType == TextInputType.phone ? 10 : null, // Limit input to 10 for phone
+      inputFormatters: keyboardType == TextInputType.phone
+          ? [FilteringTextInputFormatter.digitsOnly] // Allow only digits for phone
+          : [], // No specific input formatter for text
     );
   }
+
 }
