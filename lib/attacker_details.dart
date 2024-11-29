@@ -72,14 +72,12 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
 
       print("Form is valid, navigating to FirstQuestionPage");
       Map<String, dynamic> attacker = {
-        'species': _species == 'Non-Descript (specify)'
-            ? 'Non-Descript: $_speciesDescription'
+        'species': _species == 'others(specify)'
+            ? 'others: $_speciesDescription'
             : _species,
         'age': _age,
         'sex': _gender == 'Unknown' ? null : _gender,
-        'breed': _breed == 'Non-Descript (specify)'
-            ? 'Non-Descript: $_breedDescription'
-            : _breed, // Combined breed value here
+        'breed': _breed ,// Combined breed value here
         'vaccinationStatus': _vaccinationStatus,
         'status': _animalCondition,
         'lastVaccinatedOn': lastVaccinatedOn, // Store the vaccinated date
@@ -230,7 +228,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                 ),
                 value: _species,
                 items: [
-                  'Dog', 'Cat',  'Unknown', 'Non-Descript (specify)'
+                  'Dog', 'Cat',  'Unknown', 'others(specify)'
                 ].map((species) => DropdownMenuItem<String>(
                   value: species,
                   child: Text(species),
@@ -238,8 +236,8 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                 onChanged: (value) {
                   setState(() {
                     _species = value!;
-                    // Clear species description if not Non-Descript
-                    if (_species != 'Non-Descript (specify)') {
+                    // Clear species description if not others
+                    if (_species != 'others(specify)') {
                       _speciesDescription = '';
                     }
                   });
@@ -247,8 +245,8 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                 hint: Text('Select species type'),
               ),
 
-// Only show the text field if Non-Descript is selected
-              if (_species == 'Non-Descript (specify)')
+// Only show the text field if others is selected
+              if (_species == 'others(specify)')
                 Padding(
                   padding: const EdgeInsets.only(top: 10.0),
                   child: TextFormField(
@@ -266,7 +264,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                       });
                     },
                     validator: (value) {
-                      if (_species == 'Non-Descript (specify)' && (value == null || value.isEmpty)) {
+                      if (_species == 'others(specify)' && (value == null || value.isEmpty)) {
                         return 'Please specify the species';
                       }
                       return null;
@@ -274,7 +272,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                   ),
                 ),
               const SizedBox(height: 20),
-              DropdownButtonFormField<String>(
+              TextFormField(
                 decoration: InputDecoration(
                   labelText: 'What kind of breed is it?',
                   border: OutlineInputBorder(
@@ -283,53 +281,13 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.9),
                 ),
-                value: _breed,
-                items: ['Pure breed', 'Cross breed', 'Non-Descript (specify)']
-                    .map((breed) => DropdownMenuItem<String>(
-                  value: breed,
-                  child: Text(breed),
-                ))
-                    .toList(),
                 onChanged: (value) {
                   setState(() {
-                    _breed = value!;
-                    // Clear breed description if not Non-Descript
-                    if (_breed != 'Non-Descript (specify)') {
-                      _breedDescription = '';
-                    }
+                    _breed = value; // Update the breed value with user input
                   });
                 },
-                hint: Text('Select breed type'),
               ),
 
-              if (_breed == 'Non-Descript (specify)')
-                Padding(
-                  padding: const EdgeInsets.only(top: 10.0), // Add spacing
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Specify the breed',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.9),
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _breedDescription = value;
-                        // Combine both the selection and specified breed into _breed
-
-                      });
-                    },
-                    validator: (value) {
-                      if (_breed == 'Non-Descript (specify)' &&
-                          (value == null || value.isEmpty)) {
-                        return 'Please specify the breed';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
 
               //const SizedBox(height: 20),
 
@@ -727,6 +685,21 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
       });
     }
   }
+  String getDaySuffix(int value) {
+    if (value >= 11 && value <= 13) {
+      return 'th';
+    }
+    switch (value % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -789,7 +762,7 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
                           return DropdownMenuItem<int>(
                             value: value,
                             child: Text(
-                              '$value doses',
+                              '$value${getDaySuffix(value)} day',
                               style: TextStyle(color: Colors.black87),
                             ),
                           );

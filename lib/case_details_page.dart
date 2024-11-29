@@ -268,7 +268,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
 
   Widget buildDetailCard(Map<String, dynamic>? details, {bool includeAttackArea = false}) {
     details?.forEach((key, value) {
-      print('$key: $value'); // This will print each key and its value
+      print('$key: $value');
     });
 
     return Container(
@@ -291,14 +291,31 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
           if (includeAttackArea) buildInfoRow('Attack area', caseDetails!['district'] ?? 'Unknown'),
           ...details?.entries.map((entry) {
             if (entry.key == 'attacker_id' || entry.key == 'victim_id') {
-              return SizedBox.shrink(); // Exclude specific keys if needed
+              return SizedBox.shrink(); // Skip attacker_id and victim_id
             }
-            // Handle null or empty values
-            String displayValue = (entry.value == null || entry.value.toString().isEmpty||entry.value.toString().toLowerCase() == 'null')
+
+            String displayValue = (entry.value == null || entry.value.toString().isEmpty || entry.value.toString().toLowerCase() == 'null')
                 ? 'Unknown'
                 : entry.value.toString();
 
-            // Map specific values for better readability
+            // Check vaccination status and last vaccinated date
+            if (entry.key == 'vaccination_status') {
+              print('Vaccination Status: $displayValue');
+              return buildInfoRow('Vaccination Status', displayValue);
+            } else if (entry.key == 'last_vaccinated_on') {
+              String vaccinationStatus = details['vaccination_status'] ?? 'Unknown';
+              print('Last Vaccinated On: $displayValue, based on Vaccination Status: $vaccinationStatus');
+
+              if (vaccinationStatus.toLowerCase() == 'not vaccinated' ||
+                  vaccinationStatus.toLowerCase() == 'unknown' ||
+                  vaccinationStatus.isEmpty || vaccinationStatus.toLowerCase() == 'null' || vaccinationStatus.toLowerCase() == 'not known') {
+                return SizedBox.shrink(); // Skip displaying last_vaccinated_on
+              } else {
+                return buildInfoRow('Last Vaccinated On', displayValue);
+              }
+            }
+
+            // For other fields
             if (entry.key == 'sex') {
               displayValue = _mapSex(entry.value) ?? 'Unknown';
             }
@@ -306,14 +323,13 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
               displayValue = entry.value == 1 ? 'Yes' : 'No';
             }
 
-
             return buildInfoRow(entry.key.replaceAll('_', ' '), displayValue);
           }).toList() ?? [],
-
         ],
       ),
     );
   }
+
 
   String _mapSex(String? sex) {
     switch (sex) {
@@ -325,6 +341,17 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
         return 'Unknown';
       default:
         return 'Not Specified';
+    }
+  }
+  String getDoseWithSuffix(int dose) {
+    if (dose % 10 == 1 && dose % 100 != 11) {
+      return "$dose st day";
+    } else if (dose % 10 == 2 && dose % 100 != 12) {
+      return "$dose nd day";
+    } else if (dose % 10 == 3 && dose % 100 != 13) {
+      return "$dose rd day";
+    } else {
+      return "$dose th day";
     }
   }
   Widget buildDoseDetails(List<dynamic> doseDetails) {
@@ -348,7 +375,7 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildInfoRow('Dose', dose['dose']),
+              buildInfoRow('Dose', getDoseWithSuffix(dose['dose'])),
               buildInfoRow('Date', dose['dose_date']),
             ],
           ),
@@ -382,29 +409,45 @@ class _CaseDetailsPageState extends State<CaseDetailsPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              DropdownButtonFormField<int>(
-                value: _selectedDose, // This should be an int variable to store the selected value
-                items: [0, 3, 7, 14, 28, 90].map((int dose) {
-                  return DropdownMenuItem<int>(
-                    value: dose,
-                    child: Text(dose.toString()), // Convert int to string for display
-                  );
-                }).toList(),
-                onChanged: (int? newValue) {
-                  setState(() {
-                    _selectedDose = newValue; // Update the selected dose
-                  });
-                },
-                decoration: InputDecoration(
-                  labelText: 'Dose',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.9),
+            DropdownButtonFormField<int>(
+            value: _selectedDose,
+            items: [0, 3, 7, 14, 28, 90].map((int dose) {
+              // Determine appropriate suffix for each value
+              String suffix;
+              if (dose % 10 == 1 && dose % 100 != 11) {
+                suffix = "${dose}st day";
+              } else if (dose % 10 == 2 && dose % 100 != 12) {
+                suffix = "${dose}nd day";
+              } else if (dose % 10 == 3 && dose % 100 != 13) {
+                suffix = "${dose}rd day";
+              } else {
+                suffix = "${dose}th day";
+              }
+
+              return DropdownMenuItem<int>(
+                value: dose,
+                child: Text(
+                  suffix, // Display as '0th day', '3rd day', etc.
+                  style: TextStyle(color: Colors.black87),
                 ),
+              );
+            }).toList(),
+            onChanged: (int? newValue) {
+              setState(() {
+                _selectedDose = newValue;
+              });
+            },
+            decoration: InputDecoration(
+              labelText: 'Dose',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
-              TextField(
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.9),
+            ),
+          ),
+
+          TextField(
                 controller: _dateController,
                 decoration: InputDecoration(labelText: 'Date (yyyy-MM-dd)'),
                 onTap: () async {

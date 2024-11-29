@@ -27,6 +27,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
   final _formKey = GlobalKey<FormState>();
   DateTime? _selectedDate;
   String? _area;
+
   String? _species;
   String? _breed;
   String? _age=''; // tinyint in the backend
@@ -46,6 +47,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
   DateTime? lastVaccinatedOn;
 
 
+  final TextEditingController _areaController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _woundController = TextEditingController();
   // For manual input of wound category
@@ -74,6 +76,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
   void dispose() {
     _dateController.dispose();
     _woundController.dispose();
+    _areaController.dispose();
     super.dispose();
   }
 
@@ -132,12 +135,10 @@ class _AttackFormPageState extends State<AttackFormPage> {
       Map<String, dynamic> victim = {
         'attackDate': _formattedAttackDate,
         'area': _area,
-        'species': _species == 'Non-Descript (specify)'
-            ? 'Non-Descript: $_speciesDescription'
+        'species': _species == 'others(specify)'
+            ? 'others: $_speciesDescription'
             : _species,
-        'breed': _breed == 'Non-Descript (specify)'
-            ? 'Non-Descript: $_breedDescription'
-            : _breed,
+        'breed': _breed,
         'age': _age,
         'gender': _gender == 'Unknown' ? null : _gender,
         'attackSite': _attackSite,
@@ -217,6 +218,26 @@ class _AttackFormPageState extends State<AttackFormPage> {
       },
     );
   }
+  Widget _buildManualEntryField(String label, TextEditingController controller, String hint) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.9),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter $label';
+        }
+        return null;
+      },
+    );
+  }
 
   Widget _buildDropdownField(String label, dynamic value, List<String> items, ValueChanged<dynamic> onChanged) {
     return DropdownButtonFormField<dynamic>(
@@ -246,6 +267,58 @@ class _AttackFormPageState extends State<AttackFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, List<String>> districtAreaMap = {
+      "Puducherry": [
+        "White Town",
+        "Auroville",
+        "Lawspet",
+        "Reddiarpalayam",
+        "Anna Nagar",
+        "Nellithope",
+        "Muthialpet",
+        "Karuvadikuppam",
+        "Kottakuppam",
+        "Ariyankuppam",
+        "Thattanchavady",
+        "Rainbow Nagar",
+        "Villianur",
+        "Mudaliarpet",
+        "Kalapet",
+        "Kanakachettikulam"
+      ],
+      "Karaikal": [
+        "Karaikal Town",
+        "Thirunallar",
+        "Kottucherry",
+        "Neravy",
+        "Keezhakasakudy",
+        "Tirumalairayanpattinam",
+        "Kilinjalmedu",
+        "Dharmapuram",
+        "Polagam",
+        "Poovam",
+        "Karaikalmedu",
+      ],
+      "Mahe": [
+        "Mahe Town",
+        "Palloor",
+        "Pandakkal",
+        "Cherukallayi",
+        "Manjakkal",
+        "Naluthara",
+        "Chalakkara"
+      ],
+      "Yanam": [
+        "Yanam Town",
+        "Mettakur",
+        "Savithri Nagar",
+        "Kanakalapeta",
+        "Agraharam",
+        "Venkanna Babu Nagar",
+        "Farampeta"
+      ],
+      "Tamil Nadu": []
+    };
     return Scaffold(
       appBar: AppBar(
         title: const Text('Victim', style: TextStyle(color: Colors.white)), // Title color
@@ -276,23 +349,33 @@ class _AttackFormPageState extends State<AttackFormPage> {
                 const SizedBox(height: 20),
                 _buildDateField(context),
                 const SizedBox(height: 20),
-                _buildDropdownField('District', _district, ['Puducherry', 'Karaikal', 'Mahe', 'Yanam', 'Tamil Nadu'], (value) {
-                  setState(() {
-                    _district = value;
-                  });
-                }),
-                const SizedBox(height: 20),
-                _buildTextField(
-                  'Area',
-                  null,
-                  'Enter area',
+                _buildDropdownField(
+                  'District',
+                  _district,
+                  districtAreaMap.keys.toList(),
                       (value) {
                     setState(() {
-                      _area = value;
+                      _district = value!;
+                      _area = null; // Reset area selection when district changes
+                      _areaController.clear();
                     });
                   },
-                  //keyboardType: TextInputType.number,
                 ),
+                const SizedBox(height: 20),
+                if (_district != null)
+                  (_district == "Tamil Nadu")
+                      ? _buildManualEntryField(
+                      "Area", _areaController, "Enter the area in Tamil Nadu")
+                      : _buildDropdownField(
+                    'Area',
+                    _area,
+                    districtAreaMap[_district]!,
+                        (value) {
+                      setState(() {
+                        _area = value!;
+                      });
+                    },
+                  ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
@@ -305,7 +388,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   ),
                   value: _species,
                   items: [
-                    'Dog', 'Cat', 'Goat', 'Cattle', 'Poultry', 'Sheep', 'Non-Descript (specify)'
+                    'Dog', 'Cat', 'Goat', 'Cattle', 'Poultry', 'Sheep', 'others(specify)'
                   ].map((species) => DropdownMenuItem<String>(
                     value: species,
                     child: Text(species),
@@ -313,8 +396,8 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   onChanged: (value) {
                     setState(() {
                       _species = value!;
-                      // Clear species description if not Non-Descript
-                      if (_species != 'Non-Descript (specify)') {
+                      // Clear species description if not others
+                      if (_species != 'others(specify)') {
                         _speciesDescription = '';
                       }
                     });
@@ -322,8 +405,8 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   hint: Text('Select species type'),
                 ),
 
-// Only show the text field if Non-Descript is selected
-                if (_species == 'Non-Descript (specify)')
+// Only show the text field if others is selected
+                if (_species == 'others(specify)')
                   Padding(
                     padding: const EdgeInsets.only(top: 10.0),
                     child: TextFormField(
@@ -342,7 +425,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                         });
                       },
                       validator: (value) {
-                        if (_species == 'Non-Descript (specify)' && (value == null || value.isEmpty)) {
+                        if (_species == 'others(specify)' && (value == null || value.isEmpty)) {
                           return 'Please specify the species';
                         }
                         return null;
@@ -351,62 +434,30 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   ),
 
 
-                const SizedBox(height: 20),DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'What kind of breed is it?',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.9),
-                  ),
-                  value: _breed,
-                  items: ['Pure breed', 'Cross breed', 'Non-Descript (specify)']
-                      .map((breed) => DropdownMenuItem<String>(
-                    value: breed,
-                    child: Text(breed),
-                  ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _breed = value!;
-                      // Clear breed description if not Non-Descript
-                      if (_breed != 'Non-Descript (specify)') {
-                        _breedDescription = '';
-                      }
-                    });
-                  },
-                  hint: Text('Select breed type'),
+                const SizedBox(height: 20),
+                TextFormField(
+                decoration: InputDecoration(
+                labelText: 'What kind of breed is it?',
+                border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.9),
+                ),
+                onChanged: (value) {
+                setState(() {
+                _breed = value; // Update the breed value with user input
+                });
+                },
+                validator: (value) {
+                if (value == null || value.isEmpty) {
+                return 'Please enter the breed type';
+                }
+                return null;
+                },
                 ),
 
-                if (_breed == 'Non-Descript (specify)')
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10.0), // Add spacing
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Specify the breed',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white.withOpacity(0.9),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _breedDescription = value;
-                          // Combine both the selection and specified breed into _breed
 
-                        });
-                      },
-                      validator: (value) {
-                        if (_breed == 'Non-Descript (specify)' &&
-                            (value == null || value.isEmpty)) {
-                          return 'Please specify the breed';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
                 const SizedBox(height: 20),
                 Text(
                   'Age: $_age', // Display the concatenated age

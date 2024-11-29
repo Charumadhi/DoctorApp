@@ -28,6 +28,9 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
   }
 
   Future<void> fetchPastAttackReports() async {
+    setState(() {
+      isLoading = true; // Show loader when fetching reports
+    });
     final url = 'https://rabitrack-backend-production.up.railway.app/getCasesByDoctorId/${widget.doctorId}';
     print('Fetching reports for Doctor ID: ${widget.doctorId} with JWT: ${widget.jwtToken}');
     try {
@@ -72,6 +75,11 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
       setState(() {
         errorMessage = 'Failed to load reports';
         isLoading = false;
+      });
+    }
+    finally {
+      setState(() {
+        isLoading = false; // Hide loader after fetching
       });
     }
   }
@@ -187,11 +195,32 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
                   ),
                   SizedBox(height: 20),
                   if (errorMessage == 'Failed to load reports')
-                    ElevatedButton(
-                      onPressed: fetchPastAttackReports,
-                      child: Text('Retry'),
-                    ),
-                ],
+    ElevatedButton(
+    onPressed: () async {
+    setState(() {
+    isLoading = true; // Show loading indicator
+    });
+
+    await Future.delayed(Duration(seconds: 1)); // Ensure loading indicator shows for at least 1 second
+
+    // Call the fetch function
+    await fetchPastAttackReports();
+
+    // Stop the loading indicator after fetching
+    setState(() {
+    isLoading = false;
+    });
+    },
+    child: isLoading
+    ? SizedBox(
+    width: 20,
+    height: 20,
+    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+    )
+        : Text('Retry'),
+    ),
+
+    ],
               ),
             )
                 : ListView.builder(
@@ -255,6 +284,14 @@ class _PastAttackReportsPageState extends State<PastAttackReportsPage> {
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.blueGrey.shade500,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text( // New field for owner name
+                          'Owner: ${report['victim_owner']}', // Adjust the key if necessary
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.blueGrey.shade700,
                           ),
                         ),
                         SizedBox(height: 12),
