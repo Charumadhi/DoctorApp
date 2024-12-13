@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CreditsPage extends StatelessWidget {
   final String jwtToken;
@@ -17,15 +19,14 @@ class CreditsPage extends StatelessWidget {
             color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.indigo[600],  // Elegant deep blue
+        backgroundColor: Colors.indigo[600],
         elevation: 0,
         iconTheme: const IconThemeData(
           color: Colors.white,
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // Pass the JWT token back to ProfilePage when back button is pressed
             Navigator.pop(context, jwtToken);
           },
         ),
@@ -36,8 +37,8 @@ class CreditsPage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFd1c4e9),  // Soft lavender
-              Color(0xFFffffff),  // White
+              Color(0xFFd1c4e9),
+              Color(0xFFffffff),
             ],
           ),
         ),
@@ -53,10 +54,9 @@ class CreditsPage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               _buildSectionHeader('Under Guidance of'),
-              _buildInfoCardWithSubtitle(
+              _buildInfoCard(
                 'assets/aic_logo.png',
                 'Mr. Vishnu Varadhan',
-                'CEO, ATAL-PECF',
               ),
               const SizedBox(height: 24),
               _buildSectionHeader('Development Team'),
@@ -68,7 +68,6 @@ class CreditsPage extends StatelessWidget {
     );
   }
 
-  // Card style for the information sections
   Widget _buildInfoCard(String logoPath, String text) {
     return Card(
       elevation: 5,
@@ -92,18 +91,76 @@ class CreditsPage extends StatelessWidget {
     );
   }
 
-  // Card with subtitle for guidance section
-  Widget _buildInfoCardWithSubtitle(String logoPath, String name, String position) {
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.indigo,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDevelopmentTeam() {
+    return Column(
+      children: [
+        _buildDeveloperCard(
+          'Shefaoudeen Z',
+          ['assets/ptu-logo.png', 'assets/logo.png'], // Two images for Shefaoudeen
+          'https://www.linkedin.com/in/shefaoudeen-z/',
+          'https://github.com/Shefaoudeen',
+          'Web Development',
+        ),
+        const SizedBox(height: 16),
+        _buildDeveloperCard(
+          'Pradeep Raj',
+          ['assets/ptu-logo.png','assets/logo.png'], // Single image
+          'https://www.linkedin.com/in/pradheepraj/',
+          'https://github.com/Pradheepraj2K4',
+          'Backend Development',
+        ),
+        const SizedBox(height: 16),
+        _buildDeveloperCard(
+          'Paul Jenniffer',
+          ['assets/ptu-logo.png'], // Single image
+          'https://www.linkedin.com/in/jenniffer-paul-1a64a7215/',
+          'https://github.com/JennifferPaul',
+          'Mobile App Development',
+        ),
+        const SizedBox(height: 16),
+        _buildDeveloperCard(
+          'Charumadhi',
+          ['assets/ptu-logo.png'], // Single image
+          'https://www.linkedin.com/in/charumadhi-t-315abb278/',
+          'https://github.com/Charumadhi',
+          'Mobile App Development',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDeveloperCard(
+      String name,
+      List<String> logoPaths,
+      String linkedInUrl,
+      String githubUrl,
+      String workDescription, // Description of the work done
+      ) {
     return Card(
       elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(logoPath, width: 60, height: 60),
+            // First logo on the left
+            _buildLogo(logoPaths.first),
             const SizedBox(width: 12),
+            // Developer details and social links
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,84 +173,66 @@ class CreditsPage extends StatelessWidget {
                       color: Colors.black87,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  // Description of the work done by the person
                   Text(
-                    position,
+                    workDescription,
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _buildSocialIcon(FontAwesomeIcons.linkedin, linkedInUrl),
+                      const SizedBox(width: 16),
+                      _buildSocialIcon(FontAwesomeIcons.github, githubUrl),
+                    ],
+                  ),
                 ],
               ),
             ),
+            // Second logo on the right
+            if (logoPaths.length > 1)
+              _buildLogo(logoPaths.last),
           ],
         ),
       ),
     );
   }
 
-  // Development team card design
-  Widget _buildDevelopmentTeam() {
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            _buildLogo('assets/ptu-logo.png'),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'Shefaoudeen Z',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  Text(
-                    'Design Club of PTU',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            _buildLogo('assets/logo.png'),
-          ],
-        ),
-      ),
-    );
-  }
 
-  // Section header with custom style
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Colors.indigo,  // Elegant blue for headers
-        ),
-      ),
-    );
-  }
 
-  // Logo styling with soft shadow
   Widget _buildLogo(String logoPath) {
-    return Image.asset(
-      logoPath,
-      width: 60,
-      height: 60,
-      fit: BoxFit.cover,
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: Image.asset(
+        logoPath,
+        width: 50,
+        height: 50,
+        fit: BoxFit.cover,
+      ),
     );
+  }
+
+  Widget _buildSocialIcon(IconData icon, String url) {
+    return IconButton(
+      icon: Icon(icon, size: 30, color: Colors.indigo),
+      onPressed: () async {
+        await _launchURL(url);
+      },
+    );
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw Exception('Could not launch $url');
+      }
+    } catch (e) {
+      debugPrint('Error launching URL: $e');
+    }
   }
 }

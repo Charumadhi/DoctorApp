@@ -73,15 +73,15 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
       print("Form is valid, navigating to FirstQuestionPage");
       Map<String, dynamic> attacker = {
         'species': _species == 'others(specify)'
-            ? 'others: $_speciesDescription'
-            : _species,
-        'age': _age,
-        'sex': _gender == 'Unknown' ? null : _gender,
-        'breed': _breed ,// Combined breed value here
-        'vaccinationStatus': _vaccinationStatus,
-        'status': _animalCondition,
-        'lastVaccinatedOn': lastVaccinatedOn, // Store the vaccinated date
-        'pet': _pet,
+            ? (_speciesDescription?.isNotEmpty ?? false ? 'others: $_speciesDescription' : 'Unknown')
+            : (_species?.isNotEmpty ?? false ? _species : 'Unknown'),
+        'age': (_age?.isNotEmpty ?? false) ? _age : 'Unknown',
+        'sex': (_gender?.isNotEmpty ?? false) ? _gender : 'Unknown',
+        'breed': _breed , // Combined breed value here
+        'vaccinationStatus': (_vaccinationStatus?.isNotEmpty ?? false) ? _vaccinationStatus : 'Unknown',
+        'status': (_animalCondition?.isNotEmpty ?? false) ? _animalCondition : 'Unknown',
+        'lastVaccinatedOn': (lastVaccinatedOn != null && lastVaccinatedOn?.trim().isNotEmpty) ? lastVaccinatedOn : 'Unknown',// Store the vaccinated date
+        'pet': (_pet != null && _pet?.trim().isNotEmpty) ? _pet : 'Unknown',
       };
       print("Moving to first question page");
 
@@ -193,60 +193,59 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
         backgroundColor: Colors.blue, // App bar background color
         iconTheme: const IconThemeData(color: Colors.white), // Back button color
       ),
-          body: Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
+      body: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-          colors: [Colors.blue.shade100, Colors.white],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade100, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          ),
-          child: SingleChildScrollView(
+        ),
+        child: SingleChildScrollView(
 
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Attacker\'s Details',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Attacker\'s Details',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
                 ),
 
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'What kind of species is it?',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'What kind of species is it?',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
                   ),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.9),
+                  value: _species,
+                  items: [
+                    'Dog', 'Cat',  'Unknown', 'others(specify)'
+                  ].map((species) => DropdownMenuItem<String>(
+                    value: species,
+                    child: Text(species),
+                  )).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _species = value!;
+                      // Clear species description if not others
+                      if (_species != 'others(specify)') {
+                        _speciesDescription = '';
+                      }
+                    });
+                  },
+                  hint: Text('Select species type'),
                 ),
-                value: _species,
-                items: [
-                  'Dog', 'Cat',  'Unknown', 'others(specify)'
-                ].map((species) => DropdownMenuItem<String>(
-                  value: species,
-                  child: Text(species),
-                )).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _species = value!;
-                    // Clear species description if not others
-                    if (_species != 'others(specify)') {
-                      _speciesDescription = '';
-                    }
-                  });
-                },
-                hint: Text('Select species type'),
-              ),
 
-// Only show the text field if others is selected
-              if (_species == 'others(specify)')
+                // Only show the text field if others is selected
                 Padding(
                   padding: const EdgeInsets.only(top: 10.0),
                   child: TextFormField(
@@ -261,6 +260,7 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                     onChanged: (value) {
                       setState(() {
                         _speciesDescription = value;
+
                       });
                     },
                     validator: (value) {
@@ -271,279 +271,293 @@ class _AttackerDetailsPageState extends State<AttackerDetailsPage> {
                     },
                   ),
                 ),
-              const SizedBox(height: 20),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'What kind of breed is it?',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+                const SizedBox(height: 20),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'What kind of breed is it?',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
                   ),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.9),
+                  onChanged: (value) {
+                    setState(() {
+                      _breed = value; // Update the breed value with user input
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the breed type';
+                    }
+                    return null;
+                  },
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _breed = value; // Update the breed value with user input
-                  });
-                },
-              ),
 
 
-              //const SizedBox(height: 20),
+                //const SizedBox(height: 20),
 
-              // "Is it your pet?" dropdown
-              const SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Is it a pet?',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+                // "Is it your pet?" dropdown
+                const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Is it a pet?',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
                   ),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.9),
+                  value: _pet != null ? (_pet! ? 'Yes' : 'No') : null, // Display 'Yes' or 'No' based on _pet value
+                  items: ['Yes', 'No'].map((option) => DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(option),
+                  )).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _pet = value == 'Yes'; // Set _pet to true if 'Yes' is selected, false if 'No' is selected
+                    });
+                  },
+                  hint: Text('Select option'),
                 ),
-                value: _pet != null ? (_pet! ? 'Yes' : 'No') : null, // Display 'Yes' or 'No' based on _pet value
-                items: ['Yes', 'No'].map((option) => DropdownMenuItem<String>(
-                  value: option,
-                  child: Text(option),
-                )).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _pet = value == 'Yes'; // Set _pet to true if 'Yes' is selected, false if 'No' is selected
-                  });
-                },
-                hint: Text('Select option'),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              // Dropdown for breed selection
-              // _buildDropdownField(
-              //   'What kind of breed is it?',
-              //   _combinedBreed,
-              //   ['Pure breed', 'Cross breed', 'Non-Descript (specify)'], // List of breed options
-              //       (value) {
-              //     setState(() {
-              //       _combinedBreed = value;
-              //     });
-              //   },
-              // ),
-              // const SizedBox(height: 20),
-              //
-              // // Conditional text field for specifying breed
-              // if (_combinedBreed == 'Non-Descript (specify)')
-              //   TextFormField(
-              //     decoration: InputDecoration(
-              //       labelText: 'Specify the breed',
-              //       border: OutlineInputBorder(
-              //         borderRadius: BorderRadius.circular(15),
-              //       ),
-              //       filled: true,
-              //       fillColor: Colors.white.withOpacity(0.8),
-              //     ),
-              //     onChanged: (value) {
-              //       setState(() {
-              //         _combinedBreed = 'Non-Descript (specify): $value'; // Combine both values
-              //       });
-              //     },
-              //     validator: (value) {
-              //       if (_combinedBreed == 'Non-Descript (specify): $value' && (value == null || value.isEmpty)) {
-              //         return 'Please specify the breed'; // Validation message
-              //       }
-              //       return null;
-              //     },
-              //   ),
-              const SizedBox(height: 10),
+                // Dropdown for breed selection
+                // _buildDropdownField(
+                //   'What kind of breed is it?',
+                //   _combinedBreed,
+                //   ['Pure breed', 'Cross breed', 'Non-Descript (specify)'], // List of breed options
+                //       (value) {
+                //     setState(() {
+                //       _combinedBreed = value;
+                //     });
+                //   },
+                // ),
+                // const SizedBox(height: 20),
+                //
+                // // Conditional text field for specifying breed
+                // if (_combinedBreed == 'Non-Descript (specify)')
+                //   TextFormField(
+                //     decoration: InputDecoration(
+                //       labelText: 'Specify the breed',
+                //       border: OutlineInputBorder(
+                //         borderRadius: BorderRadius.circular(15),
+                //       ),
+                //       filled: true,
+                //       fillColor: Colors.white.withOpacity(0.8),
+                //     ),
+                //     onChanged: (value) {
+                //       setState(() {
+                //         _combinedBreed = 'Non-Descript (specify): $value'; // Combine both values
+                //       });
+                //     },
+                //     validator: (value) {
+                //       if (_combinedBreed == 'Non-Descript (specify): $value' && (value == null || value.isEmpty)) {
+                //         return 'Please specify the breed'; // Validation message
+                //       }
+                //       return null;
+                //     },
+                //   ),
+                const SizedBox(height: 10),
 
-              // Display concatenated age directly
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Age: $_age', // Display the concatenated age
-                  style: TextStyle(fontSize: 18),
+                // Display concatenated age directly
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Age: $_age', // Display the concatenated age
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
-              ),
-              // Age input field
-              const SizedBox(height: 20),
-              TextField(
-                controller: _yearsController,
-                decoration: InputDecoration(
-                  labelText: 'Years',
-                  hintText: 'Enter years',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+                // Age input field
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _yearsController,
+                  decoration: InputDecoration(
+                    labelText: 'Years',
+                    hintText: 'Enter years',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
                   ),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.9),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) => _updateAge(),
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) => _updateAge(),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _monthsController,
-                decoration: InputDecoration(
-                  labelText: 'Months',
-                  hintText: 'Enter months',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _monthsController,
+                  decoration: InputDecoration(
+                    labelText: 'Months',
+                    hintText: 'Enter months',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
                   ),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.9),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) => _updateAge(),
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) => _updateAge(),
-              ),
 
-              const SizedBox(height: 20),
-              // Gender selection
-              _buildDropdownField(
-                'What gender is it?',
-                _gender,
-                ['M', 'F', 'Unknown'],
-                    (value) {
-                  setState(() {
-                    // Store 'Unknown' as null in _gender
-                    _gender = value ;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Vaccination Status dropdown
-              // Vaccination Status Dropdown
-              DropdownButtonFormField<String>(
-                value: _vaccinationStatus,
-                items: [
-                  DropdownMenuItem<String>(
-                    value: 'Vaccinated',
-                    child: Text('Vaccinated'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'Not Vaccinated',
-                    child: Text('Not Vaccinated'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'Not Known',
-                    child: Text('Not Known'),
-                  ),
-                ],
-                onChanged: (String? value) {
-                  setState(() {
-                    _vaccinationStatus = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  labelText: 'Vaccination Status',
-
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.9),
+                const SizedBox(height: 20),
+                // Gender selection
+                _buildDropdownField(
+                  'What gender is it?',
+                  _gender,
+                  ['M', 'F', 'Unknown'],
+                      (value) {
+                    setState(() {
+                      // Store 'Unknown' as null in _gender
+                      _gender = value ;
+                    });
+                  },
                 ),
-              ),
+                const SizedBox(height: 20),
 
-              const SizedBox(height: 20),
+                // Vaccination Status dropdown
+                // Vaccination Status Dropdown
+                DropdownButtonFormField<String>(
+                  value: _vaccinationStatus,
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: 'Vaccinated',
+                      child: Text('Vaccinated'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Not Vaccinated',
+                      child: Text('Not Vaccinated'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Not Known',
+                      child: Text('Not Known'),
+                    ),
+                  ],
+                  onChanged: (String? value) {
+                    setState(() {
+                      _vaccinationStatus = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Vaccination Status',
 
-// Conditionally display the date field if status is 'Vaccinated'
-              if (_vaccinationStatus == 'Vaccinated')
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Vaccinated Date: ${lastVaccinatedOn != null ? "${lastVaccinatedOn!.day}/${lastVaccinatedOn!.month}/${lastVaccinatedOn!.year}" : "Not selected"}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[800],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Conditionally display the date field if status is 'Vaccinated'
+                if (_vaccinationStatus == 'Vaccinated')
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Vaccinated Date: ${lastVaccinatedOn != null ? "${lastVaccinatedOn!.day}/${lastVaccinatedOn!.month}/${lastVaccinatedOn!.year}" : "Not selected"}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[800],
+                            ),
                           ),
                         ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => _selectVaccinatedDate(context),
-                        icon: Icon(
-                          Icons.calendar_today,
-                          size: 18,
-                          color: Colors.white, // Set icon color to white
-                        ),
-                        label: Text(
-                          'Select Date',
-                          style: TextStyle(color: Colors.white), // Set text color to white
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent, // Custom background color
-                          foregroundColor: Colors.white, // Ensures white text and icon by default
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        ElevatedButton.icon(
+                          onPressed: () => _selectVaccinatedDate(context),
+                          icon: Icon(
+                            Icons.calendar_today,
+                            size: 18,
+                            color: Colors.white, // Set icon color to white
                           ),
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          label: Text(
+                            'Select Date',
+                            style: TextStyle(color: Colors.white), // Set text color to white
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent, // Custom background color
+                            foregroundColor: Colors.white, // Ensures white text and icon by default
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+
+
+                const SizedBox(height: 20),
+
+                // Animal condition dropdown
+                _buildDropdownField(
+                  'How is it now?',
+                  _animalCondition,
+                  ['Natural Death', 'Dead with Rabies Signs', 'Alive with No Signs', 'Unknown'],
+                      (value) => setState(() => _animalCondition = value),
+                ),
+                const SizedBox(height: 20),
+
+                // Date field
+
+
+                // Submit button
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  child: const Text(
+                    'Submit',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.black,
+                    elevation: 5,
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
                 ),
-
-
-              const SizedBox(height: 20),
-
-              // Animal condition dropdown
-              _buildDropdownField(
-                'How is it now?',
-                _animalCondition,
-                ['Natural Death', 'Dead with Rabies Signs', 'Alive with No Signs', 'Unknown'],
-                    (value) => setState(() => _animalCondition = value),
-              ),
-              const SizedBox(height: 20),
-
-              // Date field
-
-
-              // Submit button
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text(
-                  'Submit',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  shadowColor: Colors.black,
-                  elevation: 5,
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-          ),
     );
 
 
   }
+}
+
+extension on bool? {
+  trim() {}
+}
+
+extension on DateTime? {
+  trim() {}
 }
 
 class FirstQuestionPage extends StatefulWidget {
@@ -817,33 +831,33 @@ class _FirstQuestionPageState extends State<FirstQuestionPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: isLoading ? null : () => _nextQuestion(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black12,
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                      ElevatedButton(
+                        onPressed: isLoading ? null : () => _nextQuestion(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black12,
+                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: isLoading
+                            ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                            : Text(
+                          'Submit',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: isLoading
-                        ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                        : Text(
-                      'Submit',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
                     ],
                   ),
                 ),

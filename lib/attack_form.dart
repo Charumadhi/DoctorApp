@@ -136,18 +136,18 @@ class _AttackFormPageState extends State<AttackFormPage> {
         'attackDate': _formattedAttackDate,
         'area': _area,
         'species': _species == 'others(specify)'
-            ? 'others: $_speciesDescription'
-            : _species,
+            ? (_speciesDescription?.isNotEmpty ?? false ? 'others: $_speciesDescription' : 'Unknown')
+            : (_species?.isNotEmpty ?? false ? _species : 'Unknown'),
         'breed': _breed,
-        'age': _age,
-        'gender': _gender == 'Unknown' ? null : _gender,
+        'age': (_age?.isNotEmpty ?? false) ? _age : 'Unknown',
+        'gender': (_gender?.isNotEmpty ?? false) ? _gender : 'Unknown',
         'attackSite': _attackSite,
-        'woundCategory': _woundCategory,
-        'woundSeverity': _woundSeverity,
-        'vaccinationStatus': _vaccinationStatus,
-        'boosterVaccination': _boosterVaccination,
+        'woundCategory': (_woundCategory?.isNotEmpty ?? false) ? _woundCategory : 'Unknown',
+        'woundSeverity': (_woundSeverity?.isNotEmpty ?? false) ? _woundSeverity : 'Unknown',
+        'vaccinationStatus': (_vaccinationStatus?.isNotEmpty ?? false) ? _vaccinationStatus : 'Unknown',
+        'boosterVaccination': (_boosterVaccination != null && _boosterVaccination?.trim().isNotEmpty) ? _boosterVaccination : 'Unknown',
         'district': _district,
-        'lastVaccinatedOn': lastVaccinatedOn, // Store the vaccinated date
+        'lastVaccinatedOn': (lastVaccinatedOn != null && lastVaccinatedOn?.trim().isNotEmpty) ? lastVaccinatedOn : 'Unknown',// Store the vaccinated date
       };
 
 
@@ -405,7 +405,7 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   hint: Text('Select species type'),
                 ),
 
-// Only show the text field if others is selected
+                // Only show the text field if others is selected
                 if (_species == 'others(specify)')
                   Padding(
                     padding: const EdgeInsets.only(top: 10.0),
@@ -432,29 +432,27 @@ class _AttackFormPageState extends State<AttackFormPage> {
                       },
                     ),
                   ),
-
-
                 const SizedBox(height: 20),
                 TextFormField(
-                decoration: InputDecoration(
-                labelText: 'What kind of breed is it?',
-                border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                ),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.9),
-                ),
-                onChanged: (value) {
-                setState(() {
-                _breed = value; // Update the breed value with user input
-                });
-                },
-                validator: (value) {
-                if (value == null || value.isEmpty) {
-                return 'Please enter the breed type';
-                }
-                return null;
-                },
+                  decoration: InputDecoration(
+                    labelText: 'What kind of breed is it?',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _breed = value; // Update the breed value with user input
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the breed type';
+                    }
+                    return null;
+                  },
                 ),
 
 
@@ -563,40 +561,40 @@ class _AttackFormPageState extends State<AttackFormPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-    DropdownButtonFormField<String>(
-    value: _vaccinationStatus,
-    items: [
-    DropdownMenuItem<String>(
-    value: 'Vaccinated',
-    child: Text('Vaccinated'),
-    ),
-    DropdownMenuItem<String>(
-    value: 'Not Vaccinated',
-    child: Text('Not Vaccinated'),
-    ),
-    DropdownMenuItem<String>(
-    value: 'Not Known',
-    child: Text('Not Known'),
-    ),
-    ],
-    onChanged: (String? value) {
-    setState(() {
-    _vaccinationStatus = value;
-    if (_vaccinationStatus != 'Vaccinated') {
-    lastVaccinatedOn = null; // Reset the date if not vaccinated
-    }
-    });
-    },
-    decoration: InputDecoration(
-    labelText: 'Vaccination Status',
-    border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(15),
-    ),
-    filled: true,
-    fillColor: Colors.white.withOpacity(0.9),
-    ),
-    ),
-    const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  value: _vaccinationStatus,
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: 'Vaccinated',
+                      child: Text('Vaccinated'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Not Vaccinated',
+                      child: Text('Not Vaccinated'),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: 'Not Known',
+                      child: Text('Not Known'),
+                    ),
+                  ],
+                  onChanged: (String? value) {
+                    setState(() {
+                      _vaccinationStatus = value;
+                      if (_vaccinationStatus != 'Vaccinated') {
+                        lastVaccinatedOn = null; // Reset the date if not vaccinated
+                      }
+                    });
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Vaccination Status',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+                const SizedBox(height: 20),
 
                 if (_vaccinationStatus == 'Vaccinated') ...[
                   // Booster Vaccination Dropdown
@@ -789,4 +787,12 @@ class _AttackFormPageState extends State<AttackFormPage> {
     );
   }
 
+}
+
+extension on DateTime? {
+  trim() {}
+}
+
+extension on bool? {
+  trim() {}
 }
